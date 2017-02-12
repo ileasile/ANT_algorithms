@@ -46,61 +46,28 @@ class BigInt {
 	char sgn;
 	intvec data;
 
-	void negate() {
+	BigInt & negate() {
 		sgn = -sgn;
+		return *this;
 	}
 
-	void normalize() {
+	BigInt & normalize() {
 		for (auto it = data.rbegin(); it != data.rend() || data.size() < 2; ++it) {
 			if (*it != 0)
 				break;
 			data.erase(std::next(it).base);
 		}
+		return *this;
 	}
 
-	//|a|+|b|
-	static BigInt addAbs(const BigInt & a, const BigInt & b) {
-		auto it1 = a.data.cbegin();
-		auto it2 = b.data.cbegin();
-
-		ull carry = 0;
-		intvec newdata;
-		for (;it1 != a.data.end() && it2 != b.data.end(); ++it1, ++it2) {
-			ull r = carry + *it1 + *it2;
-			if (r > C2_32_1) {
-				carry = 1;
-				r -= C2_32;
-			}
-			else {
-				carry = 0;
-			}
-			newdata.push_back(r);
-		}
-
-		auto data_end = a.data.end();
-		if (it1 == a.data.end()) {
-			it1 = it2;
-			data_end = b.data.end();
-		}
-		for (;it1 != data_end; ++it1) {
-			ull r = carry + *it1;
-			if (r > C2_32_1) {
-				carry = 1;
-				r -= C2_32;
-			}
-			else {
-				carry = 0;
-			}
-			newdata.push_back(r);
-		}
-		if (carry > 0) {
-			newdata.push_back((ui)carry);
-		}
-		return BigInt(1, a.base, newdata);
-	}
+	//|a| + |b|
+	static BigInt addAbs(const BigInt & a, const BigInt & b);
 
 	// |a| - |b|
-	friend BigInt subAbs(const BigInt & a, const BigInt & b);
+	static BigInt subAbs(const BigInt & a, const BigInt & b);
+
+	// a + sign * b
+	static BigInt addSign(const BigInt & a, const BigInt & b, char sign);
 
 	BigInt(char sgn, const intvec & data) :sgn(sgn), data(data) {}
 	BigInt(char sgn, const BigInt & a) :sgn(sgn), data(a.data){}
@@ -137,83 +104,49 @@ public:
 
 public:
 	bool isNeg() const{
-		if (sgn == -1)
-			return true;
-		return false;
+		return sgn == -1;
+	}
+	char compareAbs(const BigInt & a) const {
+		if (data.size() != a.data.size()) {
+			return data.size() < a.data.size() ? -1 : 1;
+		}
+		for (size_t i = data.size() - 1; i >= 0; --i) {
+			if (data[i] != a.data[i]) {
+				return data[i] < a.data[i] ? -1 : 1;
+			}
+		}
+		return 0;
+	}
+	char compare(const BigInt & a) const {
+		if (sgn != a.sgn)
+			return sgn < a.sgn ? -1 : 1;
+		return compareAbs(a);
 	}
 	bool operator< (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return sgn < a.sgn;
-		if (data.size() != a.data.size()){
-			return isNeg() ^ this->data.size() < a.data.size();
-		}
-		for (size_t i = data.size() - 1; i >= 0; --i){
-			if (data[i] != a.data[i]){
-				return isNeg() ^ data[i] < a.data[i];
-			}
-		}
-		return false;
+		return compare(a) == -1;
 	}
 	bool operator> (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return sgn > a.sgn;
-		if (data.size() != a.data.size()){
-			return isNeg() ^ this->data.size() > a.data.size();
-		}
-		for (size_t i = data.size() - 1; i >= 0; --i){
-			if (data[i] != a.data[i]){
-				return isNeg() ^ data[i] > a.data[i];
-			}
-		}
-		return false;
+		return compare(a) == 1;
 	}
 	bool operator== (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return false;
-		return data == a.data;
+		return compare(a) == 0;
 	}
 	bool operator!= (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return true;
-		return data != a.data;
+		return compare(a) != 0;
 	}
 	bool operator<= (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return sgn < a.sgn;
-		if (data.size() != a.data.size()){
-			return isNeg() ^ this->data.size() < a.data.size();
-		}
-		for (size_t i = data.size() - 1; i >= 0; --i){
-			if (data[i] != a.data[i]){
-				return  isNeg() ^ data[i] < a.data[i];
-			}
-		}
-		return true;
+		return compare(a) <= 0;
 	}
 	bool operator>= (const BigInt & a) const{
-		if (sgn != a.sgn)
-			return sgn > a.sgn;
-		if (data.size() != a.data.size()){
-			return isNeg() ^ this->data.size() > a.data.size();
-		}
-		for (size_t i = data.size() - 1; i >= 0; --i){
-			if (data[i] != a.data[i]){
-				return isNeg() ^ data[i] > a.data[i];
-			}
-		}
-		return true;
+		return compare(a) >= 0;
 	}
 
 	BigInt operator + (const BigInt & a) const{
-		if (sgn * a.sgn >= 0)
-			return BigInt(sgn, addAbs(*this, a));
-		else{
-
-		}
+		return addSign(*this, a, 1);
 	}
 
 	BigInt operator - (const BigInt & a) {
-
+		return addSign(*this, a, -1);
 	}
 
 	BigInt operator - () {
@@ -244,6 +177,94 @@ public:
 	}
 };
 
-BigInt subAbs(const BigInt & a, const BigInt & b) {
+BigInt BigInt::addAbs(const BigInt & a, const BigInt & b) {
+	auto it1 = a.data.cbegin();
+	auto it2 = b.data.cbegin();
 
+	ull carry = 0;
+	intvec newdata;
+	for (;it1 != a.data.end() && it2 != b.data.end(); ++it1, ++it2) {
+		ull r = carry + *it1 + *it2;
+		if (r > C2_32_1) {
+			carry = 1;
+			r -= C2_32;
+		}
+		else {
+			carry = 0;
+		}
+		newdata.push_back(r);
+	}
+
+	auto data_end = a.data.end();
+	if (it1 == a.data.end()) {
+		it1 = it2;
+		data_end = b.data.end();
+	}
+	for (;it1 != data_end; ++it1) {
+		ull r = carry + *it1;
+		if (r > C2_32_1) {
+			carry = 1;
+			r -= C2_32;
+		}
+		else {
+			carry = 0;
+		}
+		newdata.push_back(r);
+	}
+	if (carry > 0) {
+		newdata.push_back((ui)carry);
+	}
+	return BigInt(1, newdata);
+}
+
+BigInt BigInt::subAbs(const BigInt & a, const BigInt & b) {
+	char sgn = a.compareAbs(b);
+	auto * pa = &a, * pb = &b;
+	if (sgn == -1) {
+		pa = &b;
+		pb = &a;
+	}
+	auto & ra = *pa;
+	auto & rb = *pb;
+
+	auto it1 = ra.data.cbegin();
+	auto it2 = rb.data.cbegin();
+
+	ull carry = 0;
+	intvec newdata;
+	for (;it1 != ra.data.end() && it2 != rb.data.end(); ++it1, ++it2) {
+		ull r = *it1 - *it2 - carry;
+		if (r < 0) {
+			carry = 1;
+			r += C2_32;
+		}
+		else {
+			carry = 0;
+		}
+		newdata.push_back(r);
+	}
+
+	for (;it1 != a.data.end(); ++it1) {
+		ull r = *it1 - carry;
+		if (r < 0) {
+			carry = 1;
+			r += C2_32;
+		}
+		else {
+			carry = 0;
+		}
+		newdata.push_back(r);
+	}
+
+	BigInt res(sgn, newdata);
+	return res.normalize();
+}
+
+BigInt BigInt::addSign(const BigInt & a, const BigInt & b, char sign) {
+	if (a.sgn * b.sgn * sign >= 0)
+		return BigInt(a.sgn + b.sgn == 0 ? 0 : a.sgn, addAbs(a, b));
+
+	BigInt res = subAbs(a, b);
+	if (a.sgn > 0) return res;
+	return res.negate();
 }
