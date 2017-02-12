@@ -50,7 +50,6 @@ class BigInt {
 		sgn = -sgn;
 		return *this;
 	}
-
 	BigInt & normalize() {
 		for (auto it = data.rbegin(); it != data.rend() || data.size() < 2; ++it) {
 			if (*it != 0)
@@ -71,21 +70,18 @@ class BigInt {
 
 	BigInt(char sgn, const intvec & data) :sgn(sgn), data(data) {}
 	BigInt(char sgn, const BigInt & a) :sgn(sgn), data(a.data){}
+	BigInt(const BigInt & a) : sgn(a.sgn), data(a.data) {}
 
 public:
-	BigInt(sll val = 0L) {
-		sgn = sign(val);
-		val = abs(val);
+	BigInt(ull val, char sign) {
+		sgn = val == 0 ? 0 : sign;
 
 		while (val > 0) {
 			data.push_back(val - ((val >> SOI) << SOI));
 			val >>= SOI;
 		}
-
-		if (sgn == -1) {
-			negate();
-		}
 	}
+	BigInt(sll val = 0L): BigInt(abs(val),sign(val)) {}
 	BigInt(string val, ui inB = 10) {
 		if (val.empty()) {
 			data.push_back(0);
@@ -103,6 +99,9 @@ public:
 	}
 
 public:
+	bool isNull() const {
+		return sgn == 0;
+	}
 	bool isNeg() const{
 		return sgn == -1;
 	}
@@ -144,15 +143,60 @@ public:
 	BigInt operator + (const BigInt & a) const{
 		return addSign(*this, a, 1);
 	}
-
-	BigInt operator - (const BigInt & a) {
+	BigInt operator - (const BigInt & a) const{
 		return addSign(*this, a, -1);
 	}
-
-	BigInt operator - () {
+	BigInt operator - () const {
 		BigInt a(*this);
 		a.negate();
 		return a;
+	}
+
+	// *this/ 2^n
+	BigInt operator >> (int n) {
+		int skip = n / SOI;
+		int k = n % SOI;
+		int soi_k = SOI - k;
+		ui lowest = (1 << k) - 1;
+		ui hb = 0, lb = 0;
+
+		intvec newdata;
+		auto it = data.begin() + skip;
+		if(it != data.end())
+			for (;;) {
+				hb = *it >> k;
+				newdata.push_back(hb);
+
+				++it;
+				if (it == data.end())
+					break;
+
+				lb = *it & lowest;
+				newdata.back() = newdata.back() | (lb << soi_k);
+			
+			}
+
+		return BigInt(sgn, newdata);
+	}
+
+	// *this * 2^n
+	BigInt operator << (int n) {
+		if (isNull()) return *this;
+
+		int skip = n / SOI;
+		int k = n % SOI;
+		int soi_k = SOI - k;
+		ui lowest = (1 << soi_k) - 1;
+		ui hb = 0, lb = 0;
+
+		intvec newdata(skip);
+		for (auto it = data.begin();it != data.end();++it) {
+			lb = *it & lowest;
+			newdata.push_back(hb | (lb << k) );
+			hb = *it >> soi_k;
+		}
+		newdata.push_back(hb);
+		return BigInt(sgn, newdata);
 	}
 
 	friend BigInt operator * (ui a, const BigInt & b) {
@@ -267,4 +311,9 @@ BigInt BigInt::addSign(const BigInt & a, const BigInt & b, char sign) {
 	BigInt res = subAbs(a, b);
 	if (a.sgn > 0) return res;
 	return res.negate();
+}
+
+int main() {
+	BigInt b(2123);
+	(BigInt)123 + b;
 }
