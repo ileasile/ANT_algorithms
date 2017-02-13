@@ -152,8 +152,36 @@ public:
 		return a;
 	}
 
-	// *this/ 2^n
-	BigInt operator >> (int n) {
+	BigInt & operator += (const BigInt & a) {
+		return *this = *this + a;
+	}
+	BigInt & operator -= (const BigInt & a) {
+		return *this = *this - a;
+	}
+	BigInt & operator ++ () {
+		return *this = *this + 1;
+	}
+	BigInt operator ++ (int) {
+		auto a = *this;
+		*this = *this + 1;
+		return a;
+	}
+	BigInt & operator -- () {
+		return *this = *this - 1;
+	}
+	BigInt operator -- (int) {
+		auto a = *this;
+		*this = *this - 1;
+		return a;
+	}
+	
+	// *this * 2^(32n)
+	void big_shift(int n) {
+		data.insert(data.begin(), n, 0);
+	}
+
+	// *this / 2^n
+	BigInt operator >> (int n) const {
 		int skip = n / SOI;
 		int k = n % SOI;
 		int soi_k = SOI - k;
@@ -180,7 +208,7 @@ public:
 	}
 
 	// *this * 2^n
-	BigInt operator << (int n) {
+	BigInt operator << (int n) const {
 		if (isNull()) return *this;
 
 		int skip = n / SOI;
@@ -214,11 +242,24 @@ public:
 		if (carry > 0) {
 			newdata.push_back((ui)carry);
 		}
-		return BigInt(b.base, newdata);
+		return BigInt(b.sgn, newdata).normalize();
 	}
 	friend BigInt operator * ( const BigInt & b, ui a) {
 		return a*b;
 	}
+
+	BigInt operator * (const BigInt & a) {
+		BigInt res = 0;
+
+		for (size_t i = 0; i < data.size(); ++i) {
+			auto toadd = data[i] * a;
+			toadd.big_shift(i);
+			res += toadd;
+		}
+
+		return res;
+	}
+
 };
 
 BigInt BigInt::addAbs(const BigInt & a, const BigInt & b) {
