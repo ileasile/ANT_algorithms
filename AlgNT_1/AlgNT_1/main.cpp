@@ -3,6 +3,10 @@
 #include <string>
 #include <cstdlib>
 #include <limits>
+#include <utility>
+#include <sstream>
+#include <algorithm>
+#include <tuple>
 #include "BigIntException.h"
 
 using std::string;
@@ -11,6 +15,8 @@ typedef long long sll;
 typedef  unsigned long long ull;
 typedef unsigned int ui;
 typedef unsigned char uc;
+class BigInt;
+typedef std::pair<BigInt, BigInt> QuRem;
 
 const uc SOI = sizeof(ui) * 8;
 const ull C2_32 = (ull)std::numeric_limits<ui>::max() + 1;
@@ -41,6 +47,16 @@ ui digval(char digit) {
 	if (digit >= 'A' && digit <= 'Z') {
 		return digit - 'A' + 10;
 	}
+	throw BigIntIllegalDigitException();
+}
+std::string dig_by_val(ui val) {
+	if (val >= 0 && val <= 9) {
+		return string(1, '0' + val);
+	}
+	if (val >= 10 && val <= 35) {
+		return string(1, 'A' + val - 10);
+	}
+	return "(" + std::to_string(val) +")";
 }
 
 class BigInt {
@@ -52,11 +68,12 @@ class BigInt {
 		return *this;
 	}
 	BigInt & normalize() {
-		for (auto it = data.rbegin(); it != data.rend() || data.size() < 2; ++it) {
-			if (*it != 0)
+		int i = data.size() - 1;
+		for (; i >= 0; --i) {
+			if (data[i] != 0)
 				break;
-			data.erase(std::next(it).base);
 		}
+		data.resize(i + 1);
 		return *this;
 	}
 	size_t dig() const {
@@ -80,8 +97,11 @@ public:
 	BigInt(const BigInt & a) : sgn(a.sgn), data(a.data) {}
 	BigInt(ull val, char sign);
 	BigInt(sll val = 0L): BigInt (abs_num(val),sign(val)) {}
-	BigInt(string val, ui inB = 10);
+	BigInt(string val, ui inB = BigInt::inputBase);
 
+	static ui inputBase;
+	static ui outputBase;
+	static bool printPlus;
 	friend std::ostream & operator<<(std::ostream & s, const BigInt & a);
 
 public:
@@ -122,18 +142,24 @@ public:
 	BigInt & operator *= (const BigInt & a);
 	BigInt & operator *= (const ui a);
 
+	QuRem div(const BigInt & d) const;
 	BigInt operator / (const BigInt & d) const;
+	BigInt operator % (const BigInt & d) const;
 	BigInt & operator/=(const BigInt & a);
 
 };
 
-BigInt::BigInt(string val, ui inB = 10) {
+ui BigInt::inputBase = 10;
+ui BigInt::outputBase = 10;
+bool BigInt::printPlus = false;
+
+BigInt::BigInt(string val, ui inB) {
 	if (val.empty()) {
 		sgn = 0;
 		return;
 	}
 
-	sgn = 1;
+	char sgn = 1;
 	if (val[0] == '-') {
 		sgn = -1;
 		val = val.substr(1);
@@ -146,18 +172,22 @@ BigInt::BigInt(string val, ui inB = 10) {
 		*this *= inB;
 		*this += digval(v);
 	}
+	this->sgn = sgn;
 	normalize();
 }
 BigInt::BigInt(ull val, char sign) {
 	sgn = val == 0 ? 0 : sign;
 
 	while (val > 0) {
-		data.push_back(val - ((val >> SOI) << SOI));
+		data.push_back((ui)(val & C2_32_1));
 		val >>= SOI;
 	}
 }
 
 BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
+	if (b.isNull())
+		return a;
+	
 	auto it1 = a.data.begin();
 	auto it2 = b.data.cbegin();
 
@@ -166,40 +196,43 @@ BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
 		ull r = carry + *it1 + *it2;
 		if (r > C2_32_1) {
 			carry = 1;
-			r -= C2_32;
+			r &= C2_32_1;
 		}
 		else {
 			carry = 0;
 		}
-		*it1 = r;
+		*it1 = (ui)r;
 	}
 
 	for (;it1 != a.data.end(); ++it1) {
 		ull r = carry + *it1;
 		if (r > C2_32_1) {
 			carry = 1;
-			r -= C2_32;
+			r &= C2_32_1;
 		}
 		else {
 			carry = 0;
 			break;
 		}
-		*it1 = r;
+		*it1 = (ui)r;
 	}
 	for (;it2 != b.data.end(); ++it2) {
 		ull r = carry + *it2;
 		if (r > C2_32_1) {
 			carry = 1;
-			r -= C2_32;
+			r &= C2_32_1;
 		}
 		else {
 			carry = 0;
 		}
-		a.data.push_back(r);
+		a.data.push_back((ui)r);
 	}
 	if (carry > 0) {
 		a.data.push_back((ui)carry);
 	}
+
+	a.sgn = 1;
+
 	return a;
 }
 BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
@@ -217,9 +250,9 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 	auto it1 = ra.data.cbegin();
 	auto it2 = rb.data.cbegin();
 
-	ull carry = 0;
+	sll carry = 0;
 	for (;it1 != ra.data.end() && it2 != rb.data.end(); ++it1, ++it2, ++ita) {
-		ull r = *it1 - *it2 - carry;
+		sll r = - carry + *it1 - *it2 ;
 		if (r < 0) {
 			carry = 1;
 			r += C2_32;
@@ -227,12 +260,12 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 		else {
 			carry = 0;
 		}
-		*ita = r;
+		*ita = (ui)r;
 	}
 
 	if (ita != a.data.end()) {
 		for (;ita != a.data.end(); ++ita) {
-			ull r = *ita - carry;
+			sll r = - carry + *ita ;
 			if (r < 0) {
 				carry = 1;
 				r += C2_32;
@@ -240,12 +273,12 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 			else {
 				carry = 0;
 			}
-			*ita = r;
+			*ita = (ui)r;
 		}
 	}
 	else {
 		for (;it1 != ra.data.end(); ++it1) {
-			ull r = *it1 - carry;
+			sll r = - carry + *it1 ;
 			if (r < 0) {
 				carry = 1;
 				r += C2_32;
@@ -253,17 +286,24 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 			else {
 				carry = 0;
 			}
-			a.data.push_back(r);
+			a.data.push_back((ui)r);
 		}
 	}
-
+	a.sgn = sgn;
 	return a.normalize();
 }
 BigInt & BigInt::addSign(BigInt & a, const BigInt & b, char sign) {
 	if (a.sgn * b.sgn * sign >= 0) {
-		if (a.sgn + b.sgn == 0)
-			a.sgn = 0;
-		return addAbs(a, b);
+		char sgn;
+		if (a.sgn + sign*b.sgn == 0)
+			sgn = 0;
+		else if (a.sgn != 0)
+			sgn = a.sgn;
+		else
+			sgn = sign * b.sgn;
+		addAbs(a, b);
+		a.sgn = sgn;
+		return a;
 	}
 
 	if (a.sgn > 0) return subAbs(a, b);
@@ -287,7 +327,7 @@ char BigInt::compareAbs(const BigInt & a) const {
 	if (data.size() != a.data.size()) {
 		return data.size() < a.data.size() ? -1 : 1;
 	}
-	for (size_t i = data.size() - 1; i >= 0; --i) {
+	for (int i = data.size() - 1; i >= 0; --i) {
 		if (data[i] != a.data[i]) {
 			return data[i] < a.data[i] ? -1 : 1;
 		}
@@ -384,7 +424,10 @@ BigInt BigInt::operator >> (int n) const {
 
 		}
 
-	return BigInt(sgn, newdata);
+	auto res = BigInt(sgn, newdata).normalize();
+	if (res.data.size() == 0)
+		res.sgn = 0;
+	return res;
 }
 
 // *this * 2^n
@@ -407,8 +450,28 @@ BigInt BigInt::operator << (int n) const {
 	return BigInt(sgn, newdata);
 }
 
-std::ostream & operator<<(std::ostream & s, const BigInt & a){
 
+std::ostream & operator<<(std::ostream & s, const BigInt & a){
+	std::stringstream out;
+	if (a.isNeg() || BigInt::printPlus)
+		s << (a.isNeg() ? '-' : '+');
+	if (a.isNull()) {
+		out << '0';
+	}
+	else {
+		BigInt A = a.abs(), R;
+		while (A > 0) {
+			std::tie(A, R) = A.div(BigInt::outputBase);
+			if (R.isNull())
+				out << '0';
+			else {
+				out << dig_by_val(R.data[0]);
+			}
+		}
+	}
+	auto res = out.str();
+	std::reverse(res.begin(), res.end());
+	s << res;
 	return s;
 }
 
@@ -420,8 +483,8 @@ BigInt operator * (ui a, const BigInt & b) {
 	for (;it != b.data.end(); ++it) {
 		ull r = carry + *it * (ull)a;
 		carry = r >> SOI;
-		r -= carry << SOI;
-		newdata.push_back(r);
+		r &= C2_32_1;
+		newdata.push_back((ui)r);
 	}
 
 	if (carry > 0) {
@@ -451,15 +514,14 @@ BigInt & BigInt::operator *= (const ui a)
 	return *this = *this * a;
 }
 
-BigInt BigInt::operator / (const BigInt & d) const {
+QuRem BigInt::div(const BigInt & d) const
+{
 	if (d.isNull()) {
 		throw BigIntDivideByZeroException();
 	}
 	if (this->isNull()) {
-		return 0;
+		return (QuRem)std::make_pair(0,0);
 	}
-	char s = this->sgn * d.sgn;
-	BigInt a = this->abs(), b = d.abs();
 
 	// this = d*x, x-?
 	// Let's find x using binary search
@@ -467,20 +529,37 @@ BigInt BigInt::operator / (const BigInt & d) const {
 	// this - d * x -> min
 	// (this >= d*x, x>=0)
 	// x should be in segment [B^(dig(this)-dig(b)-1), B^(dig(this)-dig(b))]
-	size_t da = a.dig(), db = b.dig();
-	BigInt A = ((BigInt)0);
-	BigInt B = ((BigInt)1).big_shift(da - db);
+	if (compareAbs(d) == -1)
+		return std::make_pair(0, *this);
+
+	size_t da = this->dig(), db = d.dig();
+	BigInt B = ((BigInt)1).big_shift(da - db + 1);
+	BigInt A = -B;
+	BigInt R;
 	while (B > A + 1) {
 		BigInt M = (A + B) >> 1;
-		if ((a - M * b).isNeg()) {
+		R = *this - M*d;
+		if (R.isNeg() ^ d.isNeg()) {
 			B = M;
 		}
 		else {
 			A = M;
 		}
 	}
-	A.sgn = s;
-	return A;
+	
+	BigInt RA, RB;
+	RA = *this - A*d;
+	RB = *this - B*d;
+	R = RA.isNeg() ? RB : RA;
+	return std::make_pair(A,R);
+}
+
+BigInt BigInt::operator / (const BigInt & d) const {
+	return div(d).first;
+}
+BigInt BigInt::operator %(const BigInt & d) const
+{
+	return div(d).second;
 }
 BigInt & BigInt::operator /= (const BigInt & a) {
 	return *this = *this / a;
@@ -488,5 +567,22 @@ BigInt & BigInt::operator /= (const BigInt & a) {
 
 int main() {
 	BigInt b(2123);
-	(BigInt)123 + b;
+	BigInt rsum = (BigInt)123 + b;
+	std::cout << rsum <<"\n";
+	BigInt bigval("2563472368215925492456213426832565658789968274764");
+	BigInt::outputBase = 10;
+	//std::cout << bigval << "\n";
+
+	BigInt bigval2("-12341322344444444444444444444441341");
+	std::cout << bigval / bigval2 << "\n";
+	std::cout << "\n";
+		//bigval + bigval2 << "\n" <<
+		//bigval - bigval2 << "\n" << 
+		//-bigval + bigval2 <<"\n" <<
+		//-bigval - bigval2 <<"\n\n" <<
+		//bigval2 + bigval << "\n" <<
+		//bigval2 - bigval << "\n" <<
+		//-bigval2 + bigval <<"\n" <<
+		//-bigval2 - bigval <<"\n";
+	system("pause");
 }

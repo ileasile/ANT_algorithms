@@ -12,3 +12,9 @@ class BigIntDivideByZeroException : public BigIntException {
 		return "Big Integer: Division by zero";
 	}
 };
+
+class BigIntIllegalDigitException : public BigIntException {
+	const char * what() const noexcept {
+		return "Big Integer: Unknown digit in input";
+	}
+};
