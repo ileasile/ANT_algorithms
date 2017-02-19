@@ -1,7 +1,8 @@
 #include "BigInt.h"
+#include "Testing.h"
 
 int main() {
-	BigInt b(2123);
+	/*BigInt b(2123);
 	BigInt rsum = (BigInt)123 + b;
 	std::cout << rsum <<"\n";
 
@@ -34,7 +35,7 @@ int main() {
 		-bigval *-bigval2 << "\n" <<
 		bigval * (BigInt)0 << "\n" <<
 		(BigInt)0 * bigval2 << "\n" <<
-		(BigInt)0 * (BigInt)0 << "\n\n" <<
+		(BigInt)0 * 0 << "\n\n" <<
 
 		bigval + bigval2 << "\n" <<
 		bigval - bigval2 << "\n" <<
@@ -49,7 +50,25 @@ int main() {
 	std::cout << -a1 / a2 << " " << -a1 % a2 << "\n";
 	std::cout << a1 / -a2 << " " << a1 % -a2 << "\n";
 	std::cout << -a1 / -a2 << " " << -a1 % -a2 << "\n";
-	system("pause");
+	system("pause");*/
+	Testing::Table t;
+	std::ofstream of;
+	/*t = Testing::test_correctness("Tests/tests.txt", 10);
+	of.open("Tests/correctness_res.csv");
+	of << t;
+	of.close();*/
+
+	auto ts = Testing::test_time("Tests/tests2.txt", 90);
+	for (auto p : ts) {
+		of.open("Tests/time_res_"+p.first+".csv");
+		of << p.second;
+		of.close();
+	}
+	//BigInt a("34538807304453959961404197054112285957127060760838364765878989524571119588737988301739850611758542740400368891920329446076439364");
+	//int n = 9216;
+	//std::cout << (a << n);
+	//system("pause");
+	return 0;
 }
 
 

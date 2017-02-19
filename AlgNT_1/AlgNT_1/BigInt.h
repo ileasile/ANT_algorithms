@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -90,10 +92,10 @@ public:
 
 	~BigInt();
 
-	operator int();
-	operator long long();
-	operator unsigned();
-	operator unsigned long long();
+	explicit operator int();
+	explicit operator long long();
+	explicit operator unsigned();
+	explicit operator unsigned long long();
 
 	static unsigned inputBase;
 	static BigInt outputBase;
@@ -101,6 +103,7 @@ public:
 
 
 	friend std::ostream & operator<<(std::ostream & s, const BigInt & a);
+	friend std::istream & operator>>(std::istream & s, BigInt & a);
 	std::string to_string(BigInt base = BigInt::outputBase) const;
 
 public:

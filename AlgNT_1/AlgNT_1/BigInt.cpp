@@ -138,8 +138,14 @@ BigInt::operator unsigned long long() {
 	return res;
 }
 
-std::ostream & operator<<(std::ostream & s, const BigInt & a) {
+std::ostream & operator <<(std::ostream & s, const BigInt & a) {
 	return s << a.to_string();
+}
+std::istream & operator >> (std::istream & s, BigInt & a) {
+	std::string str;
+	s >> str;
+	a = BigInt(str);
+	return s;
 }
 std::string BigInt::to_string(BigInt base) const {
 	std::vector<std::string> out;
@@ -211,7 +217,7 @@ char BigInt::compareAbs(const BigInt & a) const {
 char BigInt::compare(const BigInt & a) const {
 	if (sgn != a.sgn)
 		return sgn < a.sgn ? -1 : 1;
-	return compareAbs(a);
+	return ((sgn + a.sgn) >> 1) * compareAbs(a);
 }
 bool BigInt::operator< (const BigInt & a) const {
 	return compare(a) == -1;
@@ -377,7 +383,7 @@ BigInt & BigInt::big_shift(long long n) {
 	if (n >= 0)
 		data.insert(data.begin(), (size_t)n, 0);
 	else
-		data.erase(data.begin(), data.begin() +  (size_t)(-n) );
+		data.erase(data.begin(), data.begin() +  std::min((size_t)(-n), data.size()) );
 	return *this;
 }
 BigInt BigInt::operator >> (long long n) const {
@@ -423,7 +429,9 @@ BigInt & BigInt::operator <<= (long long n) {
 	bui hb = 0, lb = 0;
 
 	big_shift(skip);
-	for (auto it = data.begin();it != data.end();++it) {
+	if (k == 0)
+		return *this;
+	for (auto it = data.begin() + (int)skip;it != data.end();++it) {
 		auto val = *it;
 		lb = val & lowest;
 		*it = hb | (lb << k);

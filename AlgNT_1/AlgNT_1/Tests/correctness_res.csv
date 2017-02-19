@@ -1,0 +1,55 @@
+io
+1; OK
+2; OK
+3; OK
+4; OK
+5; OK
+6; OK
+7; OK
+8; OK
+9; OK
+10; OK
+ua
+1; OK
+2; OK
+3; OK
+4; OK
+5; OK
+6; OK
+7; OK
+8; OK
+9; OK
+10; OK
+shifts
+1; OK; OK
+2; OK; OK
+3; OK; OK
+4; OK; OK
+5; OK; OK
+6; OK; OK
+7; OK; OK
+8; OK; OK
+9; OK; OK
+10; OK; OK
+comp
+1; OK
+2; OK
+3; OK
+4; OK
+5; OK
+6; OK
+7; OK
+8; OK
+9; OK
+10; OK
+ba
+1; OK; OK; OK; OK; OK
+2; OK; OK; OK; OK; OK
+3; OK; OK; OK; OK; OK
+4; OK; OK; OK; OK; OK
+5; OK; OK; OK; OK; OK
+6; OK; OK; OK; OK; OK
+7; OK; OK; OK; OK; OK
+8; OK; OK; OK; OK; OK
+9; OK; OK; OK; OK; OK
+10; OK; OK; OK; OK; OK
