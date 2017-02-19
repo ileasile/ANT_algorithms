@@ -11,7 +11,7 @@ int main() {
 		s <<= 1;
 	}
 
-	BigInt bigval("11481306952742545242328332011768769444444444444444444444444444444888888888888886757444444444444444444444444448669999999999999999999999999999999999999555555555555555557777777777777777777777777777777777777777777777777777999997681984022317702088695200477642736");
+	BigInt bigval("2563472368215925492456213426832565658789968274764");
 	BigInt::outputBase = 10;
 	std::cout << bigval << "\n";
 
@@ -21,26 +21,34 @@ int main() {
 	BigInt f4(4597);
 	std::cout << f1*f2*f3*f4 <<"\n";
 
+	BigInt a1(9);
+	BigInt a2(4);
+
 	BigInt bigval2("12341322344444444444444444444441341");
 	std::cout << bigval / bigval2 << "\n";
 	std::cout << bigval % bigval2 << "\n";
 	std::cout << "\n" <<
-		bigval *bigval2 << "\n" << 
+		bigval *bigval2 << "\n" <<
 		-bigval *bigval2 << "\n" <<
 		bigval *-bigval2 << "\n" <<
 		-bigval *-bigval2 << "\n" <<
 		bigval * (BigInt)0 << "\n" <<
-		(BigInt)0 *bigval2 << "\n" <<
-		(BigInt)0 * 0 << "\n\n" <<
-		
+		(BigInt)0 * bigval2 << "\n" <<
+		(BigInt)0 * (BigInt)0 << "\n\n" <<
+
 		bigval + bigval2 << "\n" <<
-		bigval - bigval2 << "\n" << 
-		-bigval + bigval2 <<"\n" <<
-		-bigval - bigval2 <<"\n\n" <<
+		bigval - bigval2 << "\n" <<
+		-bigval + bigval2 << "\n" <<
+		-bigval - bigval2 << "\n\n" <<
 		bigval2 + bigval << "\n" <<
 		bigval2 - bigval << "\n" <<
-		-bigval2 + bigval <<"\n" <<
-		-bigval2 - bigval <<"\n";
+		-bigval2 + bigval << "\n" <<
+		-bigval2 - bigval << "\n\n";
+
+	std::cout << a1 / a2 << " " << a1 % a2 << "\n";
+	std::cout << -a1 / a2 << " " << -a1 % a2 << "\n";
+	std::cout << a1 / -a2 << " " << a1 % -a2 << "\n";
+	std::cout << -a1 / -a2 << " " << -a1 % -a2 << "\n";
 	system("pause");
 }
 

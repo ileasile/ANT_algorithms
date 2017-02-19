@@ -93,11 +93,49 @@ BigInt::BigInt(const std::vector<inttype>& v, char sign) {
 	for (auto it = data.begin(); it != data.end(); ++it, ++itv) {
 		*it = (bui)*itv;
 	}
-	normalize();
 	sgn = sign;
-	if (data.size() == 0) {
-		sgn = 0;
+	normalize();
+}
+
+BigInt::~BigInt() {
+	data.clear();
+}
+
+BigInt::operator int() {
+	const int iters = sizeof(int) / sizeof(bui);
+	unsigned res = 0;
+	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+		res <<= SOI;
+		res += data[i];
 	}
+	return (int)res * sgn;
+}
+BigInt::operator long long() {
+	const int iters = sizeof(long long) / sizeof(bui);
+	unsigned long long res = 0;
+	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+		res <<= SOI;
+		res += data[i];
+	}
+	return (long long)res * sgn;
+}
+BigInt::operator unsigned() {
+	const int iters = sizeof(int) / sizeof(bui);
+	unsigned res = 0;
+	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+		res <<= SOI;
+		res += data[i];
+	}
+	return res;
+}
+BigInt::operator unsigned long long() {
+	const int iters = sizeof(long long) / sizeof(bui);
+	unsigned long long res = 0;
+	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+		res <<= SOI;
+		res += data[i];
+	}
+	return res;
 }
 
 std::ostream & operator<<(std::ostream & s, const BigInt & a) {
@@ -113,7 +151,7 @@ std::string BigInt::to_string(BigInt base) const {
 	}
 	else {
 		BigInt A = abs(), R;
-		while (A > 0) {
+		while (A.isPos()) {
 			std::tie(A, R) = A.div(base);
 			if (R.isNull())
 				out.push_back("0");
@@ -194,6 +232,23 @@ bool BigInt::operator>= (const BigInt & a) const {
 	return compare(a) >= 0;
 }
 
+template<unsigned char shift, BigInt::lui mask>
+void BigInt::shift_con_uu(lui & r, lui & carry) {
+	carry = r >> shift;
+	r &= mask;
+}
+
+template<BigInt::lui added_val>
+void BigInt::elementary_subs(lsi & r, lsi & carry) {
+	if (r < 0) {
+		r += added_val;
+		carry = -1;
+	}
+	else {
+		carry = 0;
+	}
+}
+
 BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
 	if (b.isNull())
 		return a;
@@ -204,37 +259,17 @@ BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
 	lui carry = 0;
 	for (;it1 != a.data.end() && it2 != b.data.end(); ++it1, ++it2) {
 		lui r = carry + *it1 + *it2;
-		if (r > C_MAX_DIG) {
-			carry = 1;
-			r &= C_MAX_DIG;
-		}
-		else {
-			carry = 0;
-		}
+		shift_con_uu(r, carry);
 		*it1 = (bui)r;
 	}
-
 	for (;it1 != a.data.end(); ++it1) {
 		lui r = carry + *it1;
-		if (r > C_MAX_DIG) {
-			carry = 1;
-			r &= C_MAX_DIG;
-		}
-		else {
-			carry = 0;
-			break;
-		}
+		shift_con_uu(r, carry);
 		*it1 = (bui)r;
 	}
 	for (;it2 != b.data.end(); ++it2) {
 		lui r = carry + *it2;
-		if (r > C_MAX_DIG) {
-			carry = 1;
-			r &= C_MAX_DIG;
-		}
-		else {
-			carry = 0;
-		}
+		shift_con_uu(r, carry);
 		a.data.push_back((bui)r);
 	}
 	if (carry > 0) {
@@ -253,49 +288,31 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 		pa = &b;
 		pb = &a;
 	}
-	auto & ra = *pa;
-	auto & rb = *pb;
+	auto & ra = pa -> data;
+	auto & rb = pb -> data;
 
 	auto ita = a.data.begin();
-	auto it1 = ra.data.cbegin();
-	auto it2 = rb.data.cbegin();
+	auto it1 = ra.cbegin();
+	auto it2 = rb.cbegin();
 
 	lsi carry = 0;
-	for (;it1 != ra.data.end() && it2 != rb.data.end(); ++it1, ++it2, ++ita) {
-		lsi r = -carry + *it1 - *it2;
-		if (r < 0) {
-			carry = 1;
-			r += C_MAX_DIG_1;
-		}
-		else {
-			carry = 0;
-		}
+	for (;it1 != ra.end() && it2 != rb.end(); ++it1, ++it2, ++ita) {
+		lsi r = carry + *it1 - *it2;
+		elementary_subs(r, carry);
 		*ita = (bui)r;
 	}
 
 	if (ita != a.data.end()) {
 		for (;ita != a.data.end(); ++ita) {
-			lsi r = -carry + *ita;
-			if (r < 0) {
-				carry = 1;
-				r += C_MAX_DIG_1;
-			}
-			else {
-				carry = 0;
-			}
+			lsi r = carry + *ita;
+			elementary_subs(r, carry);
 			*ita = (bui)r;
 		}
 	}
 	else {
-		for (;it1 != ra.data.end(); ++it1) {
-			lsi r = -carry + *it1;
-			if (r < 0) {
-				carry = 1;
-				r += C_MAX_DIG_1;
-			}
-			else {
-				carry = 0;
-			}
+		for (;it1 != ra.end(); ++it1) {
+			lsi r = carry + *it1;
+			elementary_subs(r, carry);
 			a.data.push_back((bui)r);
 		}
 	}
@@ -356,23 +373,23 @@ BigInt BigInt::operator -- (int) {
 	return a;
 }
 
-BigInt & BigInt::big_shift(int n) {
+BigInt & BigInt::big_shift(long long n) {
 	if (n >= 0)
-		data.insert(data.begin(), n, 0);
+		data.insert(data.begin(), (size_t)n, 0);
 	else
-		data.erase(data.begin(), data.begin() - n);
+		data.erase(data.begin(), data.begin() +  (size_t)(-n) );
 	return *this;
 }
-BigInt BigInt::operator >> (int n) const {
+BigInt BigInt::operator >> (long long n) const {
 	auto a(*this);
 	return a >>= n;
 }
-BigInt BigInt::operator << (int n) const {
+BigInt BigInt::operator << (long long n) const {
 	auto a(*this);
 	return a <<= n;
 }
-BigInt & BigInt::operator >>= (int n) {
-	int skip = n >> LOG_SOI;
+BigInt & BigInt::operator >>= (long long n) {
+	auto skip = n >> LOG_SOI;
 	int k = n & SOI_1;
 	int soi_k = SOI - k;
 	bui lowest = (1 << k) - 1;
@@ -396,10 +413,10 @@ BigInt & BigInt::operator >>= (int n) {
 
 	return normalize();
 }
-BigInt & BigInt::operator <<= (int n) {
+BigInt & BigInt::operator <<= (long long n) {
 	if (isNull()) return *this;
 
-	int skip = n >> LOG_SOI;
+	auto skip = n >> LOG_SOI;
 	int k = n & SOI_1;
 	int soi_k = SOI - k;
 	bui lowest = (1 << soi_k) - 1;
@@ -497,10 +514,13 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 
 	if (res_sgn == -1) {
 		Q.negate();
-		R.negate();
 		--Q;
-		R += B;
+		subAbs(R, d);
+		R.negate();
 	}
+
+	if (d.isNeg())
+		R.negate();
 
 	Q.normalize();
 	R.normalize();

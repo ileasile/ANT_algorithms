@@ -69,6 +69,11 @@ private:
 		return data[i];
 	}
 
+	template<unsigned char shift = SOI, lui mask = C_MAX_DIG>
+	static inline void shift_con_uu(lui & r, lui & carry);
+
+	template<lui added_val = C_MAX_DIG_1>
+	static inline void elementary_subs(lsi & r, lsi & carry);
 public:
 	BigInt(char sgn, const intvec & data) :sgn(sgn), data(data) {}
 	BigInt(char sgn, const BigInt & a) :sgn(sgn), data(a.data) {}
@@ -82,6 +87,13 @@ public:
 
 	template<class inttype>
 	friend std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt & a);
+
+	~BigInt();
+
+	operator int();
+	operator long long();
+	operator unsigned();
+	operator unsigned long long();
 
 	static unsigned inputBase;
 	static BigInt outputBase;
@@ -117,13 +129,13 @@ public:
 	BigInt operator -- (int);
 
 	// *this * 2^(32n)
-	BigInt & big_shift(int n);
+	BigInt & big_shift(long long n);
 	// *this / 2^n
-	BigInt operator >> (int n) const;
-	BigInt & operator >>= (int n);
+	BigInt operator >> (long long n) const;
+	BigInt & operator >>= (long long n);
 	// *this * 2^n
-	BigInt operator << (int n) const;
-	BigInt & operator <<= (int n);
+	BigInt operator << (long long n) const;
+	BigInt & operator <<= (long long n);
 
 	friend BigInt operator * (bui a, const BigInt & b);
 	friend BigInt operator * (const BigInt & b, bui a);
