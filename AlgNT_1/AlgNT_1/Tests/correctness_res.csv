@@ -9,6 +9,16 @@ io
 8; OK
 9; OK
 10; OK
+11; OK
+12; OK
+13; OK
+14; OK
+15; OK
+16; OK
+17; OK
+18; OK
+19; OK
+20; OK
 ua
 1; OK
 2; OK
@@ -20,6 +30,46 @@ ua
 8; OK
 9; OK
 10; OK
+11; OK
+12; OK
+13; OK
+14; OK
+15; OK
+16; OK
+17; OK
+18; OK
+19; OK
+20; OK
+21; OK
+22; OK
+23; OK
+24; OK
+25; OK
+26; OK
+27; OK
+28; OK
+29; OK
+30; OK
+31; OK
+32; OK
+33; OK
+34; OK
+35; OK
+36; OK
+37; OK
+38; OK
+39; OK
+40; OK
+41; OK
+42; OK
+43; OK
+44; OK
+45; OK
+46; OK
+47; OK
+48; OK
+49; OK
+50; OK
 shifts
 1; OK; OK
 2; OK; OK
@@ -31,6 +81,26 @@ shifts
 8; OK; OK
 9; OK; OK
 10; OK; OK
+11; OK; OK
+12; OK; OK
+13; OK; OK
+14; OK; OK
+15; OK; OK
+16; OK; OK
+17; OK; OK
+18; OK; OK
+19; OK; OK
+20; OK; OK
+21; OK; OK
+22; OK; OK
+23; OK; OK
+24; OK; OK
+25; OK; OK
+26; OK; OK
+27; OK; OK
+28; OK; OK
+29; OK; OK
+30; OK; OK
 comp
 1; OK
 2; OK
@@ -42,6 +112,36 @@ comp
 8; OK
 9; OK
 10; OK
+11; OK
+12; OK
+13; OK
+14; OK
+15; OK
+16; OK
+17; OK
+18; OK
+19; OK
+20; OK
+21; OK
+22; OK
+23; OK
+24; OK
+25; OK
+26; OK
+27; OK
+28; OK
+29; OK
+30; OK
+31; OK
+32; OK
+33; OK
+34; OK
+35; OK
+36; OK
+37; OK
+38; OK
+39; OK
+40; OK
 ba
 1; OK; OK; OK; OK; OK
 2; OK; OK; OK; OK; OK
@@ -53,3 +153,43 @@ ba
 8; OK; OK; OK; OK; OK
 9; OK; OK; OK; OK; OK
 10; OK; OK; OK; OK; OK
+11; OK; OK; OK; OK; OK
+12; OK; OK; OK; OK; OK
+13; OK; OK; OK; OK; OK
+14; OK; OK; OK; OK; OK
+15; OK; OK; OK; OK; OK
+16; OK; OK; OK; OK; OK
+17; OK; OK; OK; OK; OK
+18; OK; OK; OK; OK; OK
+19; OK; OK; OK; OK; OK
+20; OK; OK; OK; OK; OK
+21; OK; OK; OK; OK; OK
+22; OK; OK; OK; OK; OK
+23; OK; OK; OK; OK; OK
+24; OK; OK; OK; OK; OK
+25; OK; OK; OK; OK; OK
+26; OK; OK; OK; OK; OK
+27; OK; OK; OK; OK; OK
+28; OK; OK; OK; OK; OK
+29; OK; OK; OK; OK; OK
+30; OK; OK; OK; OK; OK
+31; OK; OK; OK; OK; OK
+32; OK; OK; OK; OK; OK
+33; OK; OK; OK; OK; OK
+34; OK; OK; OK; OK; OK
+35; OK; OK; OK; OK; OK
+36; OK; OK; OK; OK; OK
+37; OK; OK; OK; OK; OK
+38; OK; OK; OK; OK; OK
+39; OK; OK; OK; OK; OK
+40; OK; OK; OK; OK; OK
+41; OK; OK; OK; OK; OK
+42; OK; OK; OK; OK; OK
+43; OK; OK; OK; OK; OK
+44; OK; OK; OK; OK; OK
+45; OK; OK; OK; OK; OK
+46; OK; OK; OK; OK; OK
+47; OK; OK; OK; OK; OK
+48; OK; OK; OK; OK; OK
+49; OK; OK; OK; OK; OK
+50; OK; OK; OK; OK; OK

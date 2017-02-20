@@ -57,6 +57,8 @@ namespace Testing {
 		IO, UNARY, BINARY, SHIFTS, COMP
 	};
 
+	auto MAX = std::numeric_limits<int>::max();
+
 	std::map<std::string, TestType> test_type = {
 		{ "io", TestType::IO},
 		{ "ua", TestType::UNARY },
@@ -71,7 +73,7 @@ namespace Testing {
 		{ TestType::COMP, 1 } };
 	std::string txt_res[] = { "FAIL", "OK" };
 
-	Table test_correctness(std::string tests_path, int tests_limit = std::numeric_limits<int>::max()) {
+	Table test_correctness(std::string tests_path, int tests_limit = MAX) {
 		std::ifstream f(tests_path);
 		if (!f) throw BadInputTestingException();
 
@@ -183,7 +185,15 @@ namespace Testing {
 		}
 	};
 
-	std::list<std::pair<std::string, Table>> test_time(std::string tests_path, int tests_limit = std::numeric_limits<int>::max()) {
+	std::list<std::pair<std::string, Table>> test_time(
+		std::string tests_path, 
+		std::map<TestType, int> tests_limit = {
+			{ TestType::IO, MAX },
+			{ TestType::UNARY, MAX },
+			{ TestType::BINARY, MAX },
+			{ TestType::SHIFTS, MAX },
+			{ TestType::COMP, MAX } })
+	{
 		std::ifstream f(tests_path);
 		if (!f) throw BadInputTestingException();
 
@@ -214,7 +224,7 @@ namespace Testing {
 			int n, m;
 
 			for (int j = 0; j < NTESTS; ++j) {
-				if (j >= tests_limit) {
+				if (j >= tests_limit[type]) {
 					std::getline(f, inp);
 					//std::cout << inp<< "\n";
 					continue;
@@ -223,6 +233,7 @@ namespace Testing {
 				std::list<std::string> row;
 				row.push_back(std::to_string(j + 1));
 
+				int legend_val = 0;
 				switch (type)
 				{
 				case TestType::IO:
@@ -231,15 +242,15 @@ namespace Testing {
 					A = BigInt(inp);
 					inp = A.to_string();
 					res[0] = timer.get();
-					WORKAROUND += A.isPos();
+					legend_val = A.dig();
 					break;
 
 				case TestType::UNARY:
 					f >> A;
 					timer.start();
 					C = -A;
-					WORKAROUND += C.isPos();
 					res[0] = timer.get();
+					legend_val = C.dig();
 					break;
 
 				case TestType::COMP:
@@ -248,6 +259,7 @@ namespace Testing {
 					m = A.compare(B);
 					WORKAROUND += m;
 					res[0] = timer.get();
+					legend_val = std::max(A.dig(), B.dig());
 					break;
 
 				case TestType::SHIFTS:
@@ -262,6 +274,7 @@ namespace Testing {
 					C = A >> n;
 					WORKAROUND += C.isPos();
 					res[1] = timer.get();
+					legend_val = A.dig();
 					break;
 
 				case TestType::BINARY:
@@ -291,9 +304,12 @@ namespace Testing {
 					C = A % B;
 					WORKAROUND += C.isPos();
 					res[4] = timer.get();
+
+					legend_val = A.dig();
 					break;
 				}
 
+				row.push_back(std::to_string(legend_val));
 				for (int k = 0; k < res_number[type]; ++k) {
 					row.push_back(std::to_string(res[k]));
 				}

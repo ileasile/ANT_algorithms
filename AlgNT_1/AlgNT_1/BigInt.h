@@ -53,7 +53,6 @@ private:
 
 	BigInt & negate();
 	BigInt & normalize();
-	size_t dig() const;
 
 	//|a| + |b|
 	static BigInt & addAbs(BigInt & a, const BigInt & b);
@@ -111,6 +110,7 @@ public:
 	bool isNeg() const;
 	bool isPos() const;
 	BigInt abs() const;
+	size_t dig() const;
 	char compareAbs(const BigInt & a) const;
 	char compare(const BigInt & a) const;
 	bool operator< (const BigInt & a) const;
