@@ -13,7 +13,7 @@
 
 namespace BigIntUtility {
 	constexpr unsigned char _log2(uint64_t n) {
-		return ((n <= 1) ? 0 : 1 + _log2(n >> 1));
+		return ((n <= 2) ? 1 : 1 + _log2(n >> 1));
 	}
 }
 
@@ -33,7 +33,7 @@ public:
 	static const lui C_MAX_DIG_1 = (lui)std::numeric_limits<bui>::max() + 1;
 	static const lui C_MAX_DIG = (lui)std::numeric_limits<bui>::max();
 	static const unsigned char LOG_SOI = BigIntUtility::_log2(SOI);
-	static const BigInt C_1;
+
 	template<typename signed_int>
 	static char sign(signed_int val);
 
@@ -55,10 +55,10 @@ private:
 	BigInt & normalize();
 
 	//|a| + |b|
-	static BigInt & addAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
+	static BigInt & addAbs(BigInt & a, const BigInt & b);
 
 	// |a| - |b|
-	static BigInt & subAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
+	static BigInt & subAbs(BigInt & a, const BigInt & b);
 
 	// a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
@@ -111,7 +111,7 @@ public:
 	bool isPos() const;
 	BigInt abs() const;
 	size_t dig() const;
-	char compareAbs(const BigInt & a, long long bigShiftA = 0) const;
+	char compareAbs(const BigInt & a) const;
 	char compare(const BigInt & a) const;
 	bool operator< (const BigInt & a) const;
 	bool operator> (const BigInt & a) const;

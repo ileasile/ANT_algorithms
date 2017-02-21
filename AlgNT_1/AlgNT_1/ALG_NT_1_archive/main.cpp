@@ -53,11 +53,11 @@ int main() {
 	system("pause");*/
 	Testing::Table t;
 	std::ofstream of;
-	/*t = Testing::test_correctness("Tests/tests.txt", 10);
-	of.open("Tests/_correctness_res.csv");
+	t = Testing::test_correctness("Tests/tests.txt", 50);
+	of.open("Tests/correctness_res.csv");
 	of << t;
-	of.close();*/
-	
+	of.close();
+
 	using Testing::TestType;
 	auto ts = Testing::test_time("Tests/tests2.txt", {
 		{ TestType::IO, 100 },
@@ -70,12 +70,10 @@ int main() {
 		of << p.second;
 		of.close();
 	}
-	/*BigInt a("9999999999999999999999999999999999999999999999999999999999999999999999999999999");
-	BigInt b("100000000000000000000000000000000000000000000000000");
-	a <<= 64;
-	int n = 0;
-	std::cout << (a/b);
-	system("pause");*/
+	//BigInt a("34538807304453959961404197054112285957127060760838364765878989524571119588737988301739850611758542740400368891920329446076439364");
+	//int n = 9216;
+	//std::cout << (a << n);
+	//system("pause");
 	return 0;
 }
 
