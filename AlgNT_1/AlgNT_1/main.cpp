@@ -53,7 +53,7 @@ int main() {
 	system("pause");*/
 	Testing::Table t;
 	std::ofstream of;
-	t = Testing::test_correctness("Tests/tests.txt", 20);
+	t = Testing::test_correctness("Tests/tests.txt", 100);
 	of.open("Tests/correctness_res.csv");
 	of << t;
 	of.close();
