@@ -222,6 +222,7 @@ namespace Testing {
 			double res[10];
 			BigInt A, B, C;
 			int n, m;
+			std::getline(f, inp);
 
 			for (int j = 0; j < NTESTS; ++j) {
 				if (j >= tests_limit[type]) {

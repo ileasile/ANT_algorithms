@@ -74,7 +74,7 @@ BigInt::BigInt(std::string val, unsigned inB) {
 
 	for (auto v : val) {
 		*this *= inB;
-		*this += digval(v);
+		addAbs(*this, digval(v));
 	}
 	this->sgn = sgn;
 	normalize();
@@ -455,35 +455,37 @@ BigInt & BigInt::operator <<= (long long n) {
 }
 
 BigInt operator * (BigInt::bui a, const BigInt & b) {
-	auto it = b.data.cbegin();
+	if (a == 0 || b.isNull())
+		return BigInt();
+	
+	auto it = b.data.begin();
 
 	BigInt::lui carry = 0;
 	BigInt::intvec newdata;
+	newdata.reserve(b.dig() + 1);
 	for (;it != b.data.end(); ++it) {
 		BigInt::lui r = carry + *it * (BigInt::lui)a;
 		carry = r >> BigInt::SOI;
-		r &= BigInt::C_MAX_DIG;
-		newdata.push_back((BigInt::bui)r);
+		newdata.push_back((BigInt::bui)(r & BigInt::C_MAX_DIG));
 	}
 
 	if (carry > 0) {
 		newdata.push_back((BigInt::bui)carry);
 	}
-	return BigInt(a == 0 ? 0 : b.sgn, newdata).normalize();
+	return BigInt(b.sgn, newdata);
 }
 BigInt operator * (const BigInt & b, BigInt::bui a) {
 	return a*b;
 }
 BigInt BigInt::operator * (const BigInt & a) const {
 	BigInt res;
-
+	if (isNull() || a.isNull())
+		return BigInt();
+	res.data.reserve(dig()*a.dig());
 	for (size_t i = 0; i < data.size(); ++i) {
-		auto toadd = data[i] * a;
-		toadd.big_shift(i);
-		res += toadd;
+		addAbs(res, data[i] * a, i);
 	}
-	if (sgn == -1)
-		res.negate();
+	res.sgn = sgn * a.sgn;
 	return res;
 }
 BigInt & BigInt::operator *= (const BigInt & a) {

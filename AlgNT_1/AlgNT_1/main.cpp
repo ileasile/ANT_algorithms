@@ -53,18 +53,18 @@ int main() {
 	system("pause");*/
 	Testing::Table t;
 	std::ofstream of;
-	/*t = Testing::test_correctness("Tests/tests.txt", 10);
-	of.open("Tests/_correctness_res.csv");
+	t = Testing::test_correctness("Tests/tests.txt", 20);
+	of.open("Tests/correctness_res.csv");
 	of << t;
-	of.close();*/
+	of.close();
 	
 	using Testing::TestType;
 	auto ts = Testing::test_time("Tests/tests2.txt", {
-		{ TestType::IO, 100 },
+		{ TestType::IO, 200 },
 		{ TestType::UNARY, 1000 },
 		{ TestType::BINARY, 1000 },
 		{ TestType::SHIFTS, 1000 },
-		{ TestType::COMP, 1000 } });
+		{ TestType::COMP, 3000 } });
 	for (auto p : ts) {
 		of.open("Tests/time_res_"+p.first+".csv");
 		of << p.second;

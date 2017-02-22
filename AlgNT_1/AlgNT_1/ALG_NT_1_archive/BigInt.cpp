@@ -3,6 +3,7 @@
 unsigned BigInt::inputBase = 10;
 BigInt BigInt::outputBase = 10;
 bool BigInt::printPlus = false;
+const BigInt BigInt::C_1 = BigInt(1, { 1 });
 
 template<typename signed_int>
 char BigInt::sign(signed_int val) {
@@ -73,7 +74,7 @@ BigInt::BigInt(std::string val, unsigned inB) {
 
 	for (auto v : val) {
 		*this *= inB;
-		*this += digval(v);
+		addAbs(*this, digval(v));
 	}
 	this->sgn = sgn;
 	normalize();
@@ -203,14 +204,19 @@ size_t BigInt::dig() const {
 	return data.size();
 }
 
-char BigInt::compareAbs(const BigInt & a) const {
-	if (data.size() != a.data.size()) {
-		return data.size() < a.data.size() ? -1 : 1;
+char BigInt::compareAbs(const BigInt & a, long long bigShiftA) const {
+	if (data.size() != a.data.size() + bigShiftA) {
+		return data.size() < (a.data.size() + bigShiftA) ? -1 : 1;
 	}
-	for (int i = data.size() - 1; i >= 0; --i) {
-		if (data[i] != a.data[i]) {
-			return data[i] < a.data[i] ? -1 : 1;
+	int i = data.size() - 1;
+	for (;i >= bigShiftA; --i) {
+		if (data[i] != a.data[(size_t)(i - bigShiftA)]) {
+			return data[i] < a.data[(size_t)(i - bigShiftA)] ? -1 : 1;
 		}
+	}
+	for (; i >= 0; --i) {
+		if (data[i] != 0)
+			return 1;
 	}
 	return 0;
 }
@@ -255,11 +261,11 @@ void BigInt::elementary_subs(lsi & r, lsi & carry) {
 	}
 }
 
-BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
+BigInt & BigInt::addAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
 	if (b.isNull())
 		return a;
 
-	auto it1 = a.data.begin();
+	auto it1 = a.data.begin() + (size_t)std::min(bigShiftB, (long long) (a.data.size()) );
 	auto it2 = b.data.cbegin();
 
 	lui carry = 0;
@@ -286,8 +292,8 @@ BigInt & BigInt::addAbs(BigInt & a, const BigInt & b) {
 
 	return a;
 }
-BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
-	char sgn = a.compareAbs(b);
+BigInt & BigInt::subAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
+	char sgn = a.compareAbs(b, bigShiftB);
 	const auto * pa = &a;
 	const auto * pb = &b;
 	if (sgn == -1) {
@@ -297,9 +303,15 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b) {
 	auto & ra = pa -> data;
 	auto & rb = pb -> data;
 
-	auto ita = a.data.begin();
-	auto it1 = ra.cbegin();
+	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
+	auto ita = a.data.begin() + sh;
+	auto it1 = ra.cbegin() ;
 	auto it2 = rb.cbegin();
+
+	if (sgn == -1)
+		it2 += sh;
+	else
+		it1 += sh;
 
 	lsi carry = 0;
 	for (;it1 != ra.end() && it2 != rb.end(); ++it1, ++it2, ++ita) {
@@ -443,35 +455,37 @@ BigInt & BigInt::operator <<= (long long n) {
 }
 
 BigInt operator * (BigInt::bui a, const BigInt & b) {
-	auto it = b.data.cbegin();
+	if (a == 0 || b.isNull())
+		return BigInt();
+	
+	auto it = b.data.begin();
 
 	BigInt::lui carry = 0;
 	BigInt::intvec newdata;
+	newdata.reserve(b.dig() + 1);
 	for (;it != b.data.end(); ++it) {
 		BigInt::lui r = carry + *it * (BigInt::lui)a;
 		carry = r >> BigInt::SOI;
-		r &= BigInt::C_MAX_DIG;
-		newdata.push_back((BigInt::bui)r);
+		newdata.push_back((BigInt::bui)(r & BigInt::C_MAX_DIG));
 	}
 
 	if (carry > 0) {
 		newdata.push_back((BigInt::bui)carry);
 	}
-	return BigInt(a == 0 ? 0 : b.sgn, newdata).normalize();
+	return BigInt(b.sgn, newdata);
 }
 BigInt operator * (const BigInt & b, BigInt::bui a) {
 	return a*b;
 }
 BigInt BigInt::operator * (const BigInt & a) const {
-	BigInt res = 0;
-
+	BigInt res;
+	if (isNull() || a.isNull())
+		return BigInt();
+	res.data.reserve(dig()*a.dig());
 	for (size_t i = 0; i < data.size(); ++i) {
-		auto toadd = data[i] * a;
-		toadd.big_shift(i);
-		res += toadd;
+		addAbs(res, data[i] * a, i);
 	}
-	if (sgn == -1)
-		res.sgn = -res.sgn;
+	res.sgn = sgn * a.sgn;
 	return res;
 }
 BigInt & BigInt::operator *= (const BigInt & a) {
@@ -492,10 +506,9 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 	}
 
 	char res_sgn = sgn * d.sgn;
-	int bits_shift = 0;
-	auto A = this->abs(), B = d.abs();
-	BigInt Q, R;
 
+	
+	/*
 	while (A > B) {
 		B <<= 1;
 		++bits_shift;
@@ -519,6 +532,48 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 		}
 	}
 	R = A;
+	*/
+
+	
+	auto A = this->abs(), B = d.abs();
+	BigInt Q, R;
+	R.data.push_back(0);
+	int bits_shift = 0;
+
+	if (A.compareAbs(B) != -1) {
+		lui eldest_dig = B.data.back();
+		bits_shift = SOI - BigIntUtility::_log2(eldest_dig) - 1;
+		A <<= bits_shift;
+		B <<= bits_shift;
+		eldest_dig = B.data.back();
+
+		auto k = A.dig(), l = B.dig();
+		R = A;
+		auto & r = R.data;
+		auto & q = Q.data;
+		q.resize(k - l + 1);
+		r.reserve(k+1);
+
+		for (int i = k - l; i >= 0; --i) {
+			r.resize(i + l + 1, 0);
+			lui temp = ( ((lui)(r[i + l]) << SOI) | r[i + l - 1]) / eldest_dig;
+			q[i] = (bui)(temp > C_MAX_DIG ? C_MAX_DIG : temp);
+			R.normalize();
+			subAbs(R, q[i] * B, i);
+			while (R.isNeg())
+			{
+				subAbs(R, B, i);
+				R.negate();
+				--q[i];
+			}
+		}
+		R >>= bits_shift;
+		r.shrink_to_fit();
+		Q.sgn = 1;
+	}
+	else {
+		R = A;
+	}
 
 	if (res_sgn == -1) {
 		Q.negate();
