@@ -61,16 +61,16 @@ int main() {
 	using Testing::TestType;
 	auto ts = Testing::test_time("Tests/tests2.txt", {
 		{ TestType::IO, 200 },
-		{ TestType::UNARY, 1000 },
+		{ TestType::UNARY, 100 },
 		{ TestType::BINARY, 1000 },
 		{ TestType::SHIFTS, 1000 },
-		{ TestType::COMP, 3000 } });
+		{ TestType::COMP, 1000 } });
 	for (auto p : ts) {
-		of.open("Tests/time_res_"+p.first+".csv");
+		of.open("Tests/_time_res_"+p.first+".csv");
 		of << p.second;
 		of.close();
 	}
-	/*BigInt a("9999999999999999999999999999999999999999999999999999999999999999999999999999999");
+	/*BigInt a("10000000000000000000000000");
 	BigInt b("100000000000000000000000000000000000000000000000000");
 	a <<= 64;
 	int n = 0;

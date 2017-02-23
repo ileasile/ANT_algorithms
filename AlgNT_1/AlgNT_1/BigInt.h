@@ -15,6 +15,9 @@ namespace BigIntUtility {
 	constexpr unsigned char _log2(uint64_t n) {
 		return ((n <= 1) ? 0 : 1 + _log2(n >> 1));
 	}
+	constexpr unsigned char _logb(uint64_t n, uint32_t base) {
+		return ((n <= 1) ? 0 : 1 + _logb(n / base, base));
+	}
 }
 
 class BigInt {
@@ -39,6 +42,9 @@ public:
 
 	template<typename signed_int>
 	static signed_int abs_num(signed_int val);
+
+	template<typename unsigned_int>
+	static unsigned_int pow_num(unsigned_int val, char n);
 
 	static unsigned char digval(char digit);
 

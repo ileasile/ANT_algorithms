@@ -15,6 +15,17 @@ signed_int BigInt::abs_num(signed_int val) {
 	return (val > 0) ? val : -val;
 }
 
+template<typename unsigned_int>
+unsigned_int BigInt::pow_num(unsigned_int val, char n)
+{
+	auto res = 1;
+	while (n > 0) {
+		res *= val;
+		--n;
+	}
+	return res;
+}
+
 unsigned char BigInt::digval(char digit) {
 	if (digit >= '0' && digit <= '9') {
 		return digit - '0';
@@ -63,21 +74,66 @@ BigInt::BigInt(std::string val, unsigned inB) {
 		return;
 	}
 
-	char sgn = 1;
-	if (val[0] == '-') {
-		sgn = -1;
-		val = val.substr(1);
-	}
-	if (val[0] == '+') {
-		val = val.substr(1);
+	int MAX_CHAR_READ = 0;
+	unsigned long long last_pow = 1;
+	while (1) {
+		last_pow *= inB;
+		if (last_pow > std::numeric_limits<unsigned>::max()) {
+			last_pow /=inB;
+			break;
+		}
+		++MAX_CHAR_READ;
 	}
 
-	for (auto v : val) {
+	char res_sgn = 1;
+	auto it = val.begin();
+	if (*it == '-') {
+		res_sgn = -1;
+		++it;
+	}
+	else if (*it == '+') {
+		++it;
+	}
+
+	unsigned char_read = 0, r = 0;
+	for (; it != val.end(); ++it) {
+		r *= inB;
+		r += digval(*it);
+		++char_read;
+		if (char_read == MAX_CHAR_READ) {
+			*this *= (unsigned)last_pow;
+			addAbs(*this, r);
+			r = char_read = 0;
+		}
+	}
+	if (char_read != 0) {
+		*this *= pow_num(inB, char_read);
+		addAbs(*this, r);
+	}
+
+	sgn = res_sgn;
+	normalize();
+	/*if (val.empty()) {
+		sgn = 0;
+		return;
+	}
+
+	char sgn = 1;
+	auto it = val.begin();
+	if (*it == '-') {
+		sgn = -1;
+		++it;
+	}
+	else if (*it == '+') {
+		++it;
+	}
+
+	for (;it != val.end(); ++it) {
 		*this *= inB;
-		addAbs(*this, digval(v));
+		addAbs(*this, digval(*it));
 	}
 	this->sgn = sgn;
-	normalize();
+	normalize();*/
 }
 BigInt::BigInt(unsigned long long val, char sign) {
 	sgn = val == 0 ? 0 : sign;
@@ -504,78 +560,39 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 	if (this->isNull()) {
 		return (QuRem)std::make_pair(0, 0);
 	}
+		
+	auto R = this->abs(), B = d.abs();
+	BigInt Q;
 
-	char res_sgn = sgn * d.sgn;
-
-	
-	/*
-	while (A > B) {
-		B <<= 1;
-		++bits_shift;
-	}
-	while (A < B) {
-		B >>= 1;
-		--bits_shift;
-	}
-	if (bits_shift >= 0) {
-		for (int i = 0; i <= bits_shift; ++i) {
-			if (B <= A) {
-				A -= B;
-				B >>= 1;
-				Q <<= 1;
-				++Q;
-			}
-			else {
-				B >>= 1;
-				Q <<= 1;
-			}
-		}
-	}
-	R = A;
-	*/
-
-	
-	auto A = this->abs(), B = d.abs();
-	BigInt Q, R;
-	R.data.push_back(0);
-	int bits_shift = 0;
-
-	if (A.compareAbs(B) != -1) {
-		lui eldest_dig = B.data.back();
-		bits_shift = SOI - BigIntUtility::_log2(eldest_dig) - 1;
-		A <<= bits_shift;
+	if (R.compareAbs(B) != -1) {
+		int bits_shift = SOI - BigIntUtility::_log2(B.data.back()) - 1;
+		R <<= bits_shift;
 		B <<= bits_shift;
-		eldest_dig = B.data.back();
+		lui eldest_dig = B.data.back();
 
-		auto k = A.dig(), l = B.dig();
-		R = A;
-		auto & r = R.data;
-		auto & q = Q.data;
-		q.resize(k - l + 1);
-		r.reserve(k+1);
+		auto k = R.dig(), l = B.dig();
+		Q.data.resize(k - l + 1);
+		R.data.reserve(k + 1);
 
 		for (int i = k - l; i >= 0; --i) {
-			r.resize(i + l + 1, 0);
-			lui temp = ( ((lui)(r[i + l]) << SOI) | r[i + l - 1]) / eldest_dig;
-			q[i] = (bui)(temp > C_MAX_DIG ? C_MAX_DIG : temp);
+			R.data.resize(i + l + 1, 0);
+			lui temp = ( ((lui)(R[i + l]) << SOI) | R[i + l - 1]) / eldest_dig;
+			Q[i] = (bui)(temp > C_MAX_DIG ? C_MAX_DIG : temp);
 			R.normalize();
-			subAbs(R, q[i] * B, i);
+			subAbs(R, Q[i] * B, i);
 			while (R.isNeg())
 			{
 				subAbs(R, B, i);
 				R.negate();
-				--q[i];
+				--Q[i];
 			}
 		}
 		R >>= bits_shift;
-		r.shrink_to_fit();
+		R.data.shrink_to_fit();
 		Q.sgn = 1;
 	}
-	else {
-		R = A;
-	}
 
-	if (res_sgn == -1) {
+	if (sgn * d.sgn == -1) {
 		Q.negate();
 		--Q;
 		subAbs(R, d);
