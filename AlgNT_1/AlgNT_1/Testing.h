@@ -243,7 +243,7 @@ namespace Testing {
 					A = BigInt(inp);
 					inp = A.to_string();
 					res[0] = timer.get();
-					legend_val = A.dig();
+					legend_val = (int)A.dig();
 					break;
 
 				case TestType::UNARY:
@@ -251,7 +251,7 @@ namespace Testing {
 					timer.start();
 					C = -A;
 					res[0] = timer.get();
-					legend_val = C.dig();
+					legend_val = (int)C.dig();
 					break;
 
 				case TestType::COMP:
@@ -260,7 +260,7 @@ namespace Testing {
 					m = A.compare(B);
 					WORKAROUND += m;
 					res[0] = timer.get();
-					legend_val = std::max(A.dig(), B.dig());
+					legend_val = (int) std::max(A.dig(), B.dig());
 					break;
 
 				case TestType::SHIFTS:
@@ -275,7 +275,7 @@ namespace Testing {
 					C = A >> n;
 					WORKAROUND += C.isPos();
 					res[1] = timer.get();
-					legend_val = A.dig();
+					legend_val = (int) A.dig();
 					break;
 
 				case TestType::BINARY:
@@ -306,7 +306,7 @@ namespace Testing {
 					WORKAROUND += C.isPos();
 					res[4] = timer.get();
 
-					legend_val = A.dig();
+					legend_val = (int)A.dig();
 					break;
 				}
 

@@ -69,10 +69,10 @@ private:
 	// a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
-	bui & operator[] (size_t i) {
+	inline bui & operator[] (size_t i) {
 		return data[i];
 	}
-	const bui & operator[] (size_t i) const {
+	inline const bui & operator[] (size_t i) const {
 		return data[i];
 	}
 
@@ -87,7 +87,7 @@ public:
 	BigInt(const BigInt & a) : sgn(a.sgn), data(a.data) {}
 	BigInt(unsigned long long val, char sign);
 	BigInt(signed long long val = 0L) : BigInt(abs_num(val), sign(val)) {}
-	BigInt(std::string val, unsigned inB = BigInt::inputBase);
+	BigInt(const std::string & val, unsigned inB = BigInt::inputBase);
 
 	template <class inttype>
 	BigInt(const std::vector<inttype> & v, char sign = 1);
@@ -112,11 +112,11 @@ public:
 	std::string to_string(BigInt base = BigInt::outputBase) const;
 
 public:
-	bool isNull() const;
-	bool isNeg() const;
-	bool isPos() const;
-	BigInt abs() const;
-	size_t dig() const;
+	inline bool isNull() const;
+	inline bool isNeg() const;
+	inline bool isPos() const;
+	inline BigInt abs() const;
+	inline size_t dig() const;
 	char compareAbs(const BigInt & a, long long bigShiftA = 0) const;
 	char compare(const BigInt & a) const;
 	bool operator< (const BigInt & a) const;

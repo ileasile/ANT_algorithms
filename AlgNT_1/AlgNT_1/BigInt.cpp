@@ -68,7 +68,7 @@ std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt & a) {
 	}
 	return v;
 }
-BigInt::BigInt(std::string val, unsigned inB) {
+BigInt::BigInt(const std::string & val, unsigned inB) {
 	if (val.empty()) {
 		sgn = 0;
 		return;
@@ -86,19 +86,22 @@ BigInt::BigInt(std::string val, unsigned inB) {
 	}
 
 	char res_sgn = 1;
-	auto it = val.begin();
-	if (*it == '-') {
+	auto p = val.data();
+	auto pEnd = p + val.size();
+
+	if (*p == '-') {
 		res_sgn = -1;
-		++it;
+		++p;
 	}
-	else if (*it == '+') {
-		++it;
+	else if (*p == '+') {
+		++p;
 	}
 
+	data.reserve( (size_t)((val.size() + 1) / log10l((long double)C_MAX_DIG_1)) + 1 );
 	unsigned char_read = 0, r = 0;
-	for (; it != val.end(); ++it) {
+	for (; p != pEnd; ++p) {
 		r *= inB;
-		r += digval(*it);
+		r += digval(*p);
 		++char_read;
 		if (char_read == MAX_CHAR_READ) {
 			*this *= (unsigned)last_pow;
@@ -247,7 +250,7 @@ BigInt & BigInt::negate() {
 	return *this;
 }
 BigInt & BigInt::normalize() {
-	int i = data.size() - 1;
+	int i = (int)data.size() - 1;
 	for (; i >= 0; --i) {
 		if (data[i] != 0)
 			break;
@@ -264,7 +267,7 @@ char BigInt::compareAbs(const BigInt & a, long long bigShiftA) const {
 	if (data.size() != a.data.size() + bigShiftA) {
 		return data.size() < (a.data.size() + bigShiftA) ? -1 : 1;
 	}
-	int i = data.size() - 1;
+	int i = (int)data.size() - 1;
 	for (;i >= bigShiftA; --i) {
 		if (data[i] != a.data[(size_t)(i - bigShiftA)]) {
 			return data[i] < a.data[(size_t)(i - bigShiftA)] ? -1 : 1;
@@ -511,24 +514,9 @@ BigInt & BigInt::operator <<= (long long n) {
 }
 
 BigInt operator * (BigInt::bui a, const BigInt & b) {
-	if (a == 0 || b.isNull())
-		return BigInt();
-	
-	auto it = b.data.begin();
-
-	BigInt::lui carry = 0;
-	BigInt::intvec newdata;
-	newdata.reserve(b.dig() + 1);
-	for (;it != b.data.end(); ++it) {
-		BigInt::lui r = carry + *it * (BigInt::lui)a;
-		carry = r >> BigInt::SOI;
-		newdata.push_back((BigInt::bui)(r & BigInt::C_MAX_DIG));
-	}
-
-	if (carry > 0) {
-		newdata.push_back((BigInt::bui)carry);
-	}
-	return BigInt(b.sgn, newdata);
+	BigInt res(b);
+	res *= a;
+	return res;
 }
 BigInt operator * (const BigInt & b, BigInt::bui a) {
 	return a*b;
@@ -537,7 +525,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 	BigInt res;
 	if (isNull() || a.isNull())
 		return BigInt();
-	res.data.reserve(dig()*a.dig());
+	res.data.reserve(dig()+a.dig());
 	for (size_t i = 0; i < data.size(); ++i) {
 		addAbs(res, data[i] * a, i);
 	}
@@ -549,7 +537,21 @@ BigInt & BigInt::operator *= (const BigInt & a) {
 }
 BigInt & BigInt::operator *= (const bui a)
 {
-	return *this = *this * a;
+	if (a == 0 || isNull())
+		return *this = BigInt();
+
+	BigInt::lui carry = 0;
+
+	for (auto & el : data) {
+		BigInt::lui r = carry + el * (BigInt::lui)a;
+		carry = r >> BigInt::SOI;
+		el = (BigInt::bui)(r & BigInt::C_MAX_DIG);
+	}
+
+	if (carry > 0) {
+		data.push_back((BigInt::bui)carry);
+	}
+	return *this;
 }
 
 BigInt::QuRem BigInt::div(const BigInt & d) const
@@ -570,7 +572,7 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 		B <<= bits_shift;
 		lui eldest_dig = B.data.back();
 
-		auto k = R.dig(), l = B.dig();
+		int k = (int)R.dig(), l = (int)B.dig();
 		Q.data.resize(k - l + 1);
 		R.data.reserve(k + 1);
 
@@ -610,8 +612,7 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 BigInt BigInt::operator / (const BigInt & d) const {
 	return div(d).first;
 }
-BigInt BigInt::operator %(const BigInt & d) const
-{
+BigInt BigInt::operator % (const BigInt & d) const {
 	return div(d).second;
 }
 BigInt & BigInt::operator /= (const BigInt & a) {
