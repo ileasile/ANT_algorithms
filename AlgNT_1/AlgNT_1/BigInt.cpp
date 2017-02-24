@@ -116,27 +116,6 @@ BigInt::BigInt(const std::string & val, unsigned inB) {
 
 	sgn = res_sgn;
 	normalize();
-	/*if (val.empty()) {
-		sgn = 0;
-		return;
-	}
-
-	char sgn = 1;
-	auto it = val.begin();
-	if (*it == '-') {
-		sgn = -1;
-		++it;
-	}
-	else if (*it == '+') {
-		++it;
-	}
-
-	for (;it != val.end(); ++it) {
-		*this *= inB;
-		addAbs(*this, digval(*it));
-	}
-	this->sgn = sgn;
-	normalize();*/
 }
 BigInt::BigInt(unsigned long long val, char sign) {
 	sgn = val == 0 ? 0 : sign;
@@ -365,7 +344,7 @@ BigInt & BigInt::addAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
 	return a;
 }
 BigInt & BigInt::subAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
-	char sgn = a.compareAbs(b, bigShiftB);
+	/*char sgn = a.compareAbs(b, bigShiftB);
 	const auto * pa = &a;
 	const auto * pb = &b;
 	if (sgn == -1) {
@@ -407,7 +386,48 @@ BigInt & BigInt::subAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
 		}
 	}
 	a.sgn = sgn;
+	return a.normalize();*/
+	
+	//std::cout <<a <<" + " << b;
+
+	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
+	auto ita = a.data.begin() + sh;
+	auto itb = b.data.begin();
+	
+	lsi carry = 0;
+	for (;ita != a.data.end() && itb != b.data.end(); ++ita, ++itb) {
+		lsi r = carry + *ita - *itb;
+		elementary_subs(r, carry);
+		*ita = (bui)r;
+	}
+	for (;ita != a.data.end(); ++ita) {
+		lsi r = carry + *ita;
+		elementary_subs(r, carry);
+		*ita = (bui)r;
+	}
+	for (;itb != b.data.end(); ++itb) {
+		lsi r = carry - *itb;
+		elementary_subs(r, carry);
+		a.data.push_back((bui)r);
+	}
+	if (carry) {
+		auto it = a.data.begin();
+		while (it != a.data.end() && *it == 0) ++it;
+		if (it != a.data.end()) {
+			*it = (bui)(C_MAX_DIG_1 - *it);
+			++it;
+			for (; it != a.data.end(); ++it) {
+				*it = C_MAX_DIG - *it;
+			}
+		}
+		a.sgn = -1;
+	}
+	else {
+		a.sgn = 1;
+	}
+	
 	return a.normalize();
+	//std::cout <<" = "<< a <<"\n";
 }
 BigInt & BigInt::addSign(BigInt & a, const BigInt & b, char sign) {
 	if (a.sgn * b.sgn * sign >= 0) {
