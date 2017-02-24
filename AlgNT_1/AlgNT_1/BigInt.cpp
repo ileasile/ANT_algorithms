@@ -216,9 +216,10 @@ std::string BigInt::to_string(BigInt base) const {
 		out.push_back("0");
 	}
 	else {
-		BigInt A = abs(), R;
+		BigInt A = abs(), R, Q;
 		while (A.isPos()) {
-			std::tie(A, R) = A.div(base);
+			A.div(base, Q, R);
+			A = Q;
 			if (R.isNull())
 				out.push_back("0");
 			else {
@@ -554,17 +555,19 @@ BigInt & BigInt::operator *= (const bui a)
 	return *this;
 }
 
-BigInt::QuRem BigInt::div(const BigInt & d) const
+void BigInt::div(const BigInt & d, BigInt & Q, BigInt & R) const
 {
 	if (d.isNull()) {
 		throw BigIntDivideByZeroException();
 	}
 	if (this->isNull()) {
-		return (QuRem)std::make_pair(0, 0);
+		Q = R = 0;
+		return;
 	}
-		
-	auto R = this->abs(), B = d.abs();
-	BigInt Q;
+
+	R = this->abs();
+	Q = 0;
+	auto B = d.abs();
 
 	if (R.compareAbs(B) != -1) {
 		int bits_shift = SOI - BigIntUtility::_log2(B.data.back()) - 1;
@@ -579,15 +582,16 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 		for (int i = k - l; i >= 0; --i) {
 			R.data.resize(i + l + 1, 0);
 			lui temp = ( ((lui)(R[i + l]) << SOI) | R[i + l - 1]) / eldest_dig;
-			Q[i] = (bui)(temp > C_MAX_DIG ? C_MAX_DIG : temp);
+			temp = (temp > C_MAX_DIG ? C_MAX_DIG : temp);
 			R.normalize();
-			subAbs(R, Q[i] * B, i);
+			subAbs(R, (bui)temp * B, i);
 			while (R.isNeg())
 			{
 				subAbs(R, B, i);
 				R.negate();
-				--Q[i];
+				--temp;
 			}
+			Q[i] = (bui)temp;
 		}
 		R >>= bits_shift;
 		R.data.shrink_to_fit();
@@ -606,14 +610,16 @@ BigInt::QuRem BigInt::div(const BigInt & d) const
 
 	Q.normalize();
 	R.normalize();
-	return std::make_pair(Q, R);
-
 }
 BigInt BigInt::operator / (const BigInt & d) const {
-	return div(d).first;
+	BigInt Q, R;
+	div(d, Q, R);
+	return Q;
 }
 BigInt BigInt::operator % (const BigInt & d) const {
-	return div(d).second;
+	BigInt Q, R;
+	div(d, Q, R);
+	return R;
 }
 BigInt & BigInt::operator /= (const BigInt & a) {
 	return *this = *this / a;

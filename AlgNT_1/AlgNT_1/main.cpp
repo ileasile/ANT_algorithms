@@ -66,7 +66,7 @@ int main() {
 		{ TestType::SHIFTS, 1000 },
 		{ TestType::COMP, 1000 } });
 	for (auto p : ts) {
-		of.open("Tests/_time_res_"+p.first+".csv");
+		of.open("Tests/time_res_"+p.first+".csv");
 		of << p.second;
 		of.close();
 	}

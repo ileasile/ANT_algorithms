@@ -152,7 +152,7 @@ public:
 	BigInt & operator *= (const BigInt & a);
 	BigInt & operator *= (const bui a);
 
-	QuRem div(const BigInt & d) const;
+	void div(const BigInt & d, BigInt & Q, BigInt & R) const;
 	BigInt operator / (const BigInt & d) const;
 	BigInt operator % (const BigInt & d) const;
 	BigInt & operator/=(const BigInt & a);
