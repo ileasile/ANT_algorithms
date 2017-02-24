@@ -97,6 +97,9 @@ public:
 
 	~BigInt();
 
+	BigInt operator~ () const;
+	bool operator! () const;
+	operator bool();
 	explicit operator int();
 	explicit operator long long();
 	explicit operator unsigned();
@@ -142,9 +145,13 @@ public:
 	// *this / 2^n
 	BigInt operator >> (long long n) const;
 	BigInt & operator >>= (long long n);
+	BigInt operator >> (int n) const;
+	BigInt & operator >>= (int n);
 	// *this * 2^n
 	BigInt operator << (long long n) const;
 	BigInt & operator <<= (long long n);
+	BigInt operator << (int n) const;
+	BigInt & operator <<= (int n);
 
 	friend BigInt operator * (bui a, const BigInt & b);
 	friend BigInt operator * (const BigInt & b, bui a);
@@ -153,6 +160,7 @@ public:
 	BigInt & operator *= (const bui a);
 
 	void div(const BigInt & d, BigInt & Q, BigInt & R) const;
+	static QuRem divmod(const BigInt & a, const BigInt & b);
 	BigInt operator / (const BigInt & d) const;
 	BigInt operator % (const BigInt & d) const;
 	BigInt & operator/=(const BigInt & a);

@@ -161,6 +161,18 @@ BigInt::~BigInt() {
 	data.clear();
 }
 
+BigInt BigInt::operator~() const{
+	return - C_1 - *this ;
+}
+
+bool BigInt::operator!() const{
+	return isNull();
+}
+
+BigInt::operator bool(){
+	return !isNull();
+}
+
 BigInt::operator int() {
 	const int iters = sizeof(int) / sizeof(bui);
 	unsigned res = 0;
@@ -514,6 +526,19 @@ BigInt & BigInt::operator <<= (long long n) {
 	return normalize();
 }
 
+BigInt BigInt::operator >> (int n) const {
+	return *this >> (long long)n;
+}
+BigInt & BigInt::operator >>= (int n) {
+	return *this >>= (long long)n;
+}
+BigInt BigInt::operator << (int n) const {
+	return *this << (long long)n;
+}
+BigInt & BigInt::operator <<= (int n) {
+	return *this <<= (long long)n;
+}
+
 BigInt operator * (BigInt::bui a, const BigInt & b) {
 	BigInt res(b);
 	res *= a;
@@ -610,6 +635,12 @@ void BigInt::div(const BigInt & d, BigInt & Q, BigInt & R) const
 
 	Q.normalize();
 	R.normalize();
+}
+BigInt::QuRem BigInt::divmod(const BigInt & a, const BigInt & b)
+{
+	BigInt Q, R;
+	a.div(b, Q, R);
+	return QuRem(Q, R);
 }
 BigInt BigInt::operator / (const BigInt & d) const {
 	BigInt Q, R;
