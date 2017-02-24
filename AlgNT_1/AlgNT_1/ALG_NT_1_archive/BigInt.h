@@ -15,6 +15,9 @@ namespace BigIntUtility {
 	constexpr unsigned char _log2(uint64_t n) {
 		return ((n <= 1) ? 0 : 1 + _log2(n >> 1));
 	}
+	constexpr unsigned char _logb(uint64_t n, uint32_t base) {
+		return ((n <= 1) ? 0 : 1 + _logb(n / base, base));
+	}
 }
 
 class BigInt {
@@ -40,6 +43,9 @@ public:
 	template<typename signed_int>
 	static signed_int abs_num(signed_int val);
 
+	template<typename unsigned_int>
+	static unsigned_int pow_num(unsigned_int val, char n);
+
 	static unsigned char digval(char digit);
 
 	static std::string dig_by_val(bui val);
@@ -63,10 +69,10 @@ private:
 	// a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
-	bui & operator[] (size_t i) {
+	inline bui & operator[] (size_t i) {
 		return data[i];
 	}
-	const bui & operator[] (size_t i) const {
+	inline const bui & operator[] (size_t i) const {
 		return data[i];
 	}
 
@@ -81,7 +87,7 @@ public:
 	BigInt(const BigInt & a) : sgn(a.sgn), data(a.data) {}
 	BigInt(unsigned long long val, char sign);
 	BigInt(signed long long val = 0L) : BigInt(abs_num(val), sign(val)) {}
-	BigInt(std::string val, unsigned inB = BigInt::inputBase);
+	BigInt(const std::string & val, unsigned inB = BigInt::inputBase);
 
 	template <class inttype>
 	BigInt(const std::vector<inttype> & v, char sign = 1);
@@ -91,6 +97,9 @@ public:
 
 	~BigInt();
 
+	BigInt operator~ () const;
+	bool operator! () const;
+	operator bool();
 	explicit operator int();
 	explicit operator long long();
 	explicit operator unsigned();
@@ -106,11 +115,11 @@ public:
 	std::string to_string(BigInt base = BigInt::outputBase) const;
 
 public:
-	bool isNull() const;
-	bool isNeg() const;
-	bool isPos() const;
-	BigInt abs() const;
-	size_t dig() const;
+	inline bool isNull() const;
+	inline bool isNeg() const;
+	inline bool isPos() const;
+	inline BigInt abs() const;
+	inline size_t dig() const;
 	char compareAbs(const BigInt & a, long long bigShiftA = 0) const;
 	char compare(const BigInt & a) const;
 	bool operator< (const BigInt & a) const;
@@ -136,9 +145,13 @@ public:
 	// *this / 2^n
 	BigInt operator >> (long long n) const;
 	BigInt & operator >>= (long long n);
+	BigInt operator >> (int n) const;
+	BigInt & operator >>= (int n);
 	// *this * 2^n
 	BigInt operator << (long long n) const;
 	BigInt & operator <<= (long long n);
+	BigInt operator << (int n) const;
+	BigInt & operator <<= (int n);
 
 	friend BigInt operator * (bui a, const BigInt & b);
 	friend BigInt operator * (const BigInt & b, bui a);
@@ -146,7 +159,8 @@ public:
 	BigInt & operator *= (const BigInt & a);
 	BigInt & operator *= (const bui a);
 
-	QuRem div(const BigInt & d) const;
+	void div(const BigInt & d, BigInt & Q, BigInt & R) const;
+	static QuRem divmod(const BigInt & a, const BigInt & b);
 	BigInt operator / (const BigInt & d) const;
 	BigInt operator % (const BigInt & d) const;
 	BigInt & operator/=(const BigInt & a);

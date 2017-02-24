@@ -40,6 +40,86 @@ ua
 18; OK
 19; OK
 20; OK
+21; OK
+22; OK
+23; OK
+24; OK
+25; OK
+26; OK
+27; OK
+28; OK
+29; OK
+30; OK
+31; OK
+32; OK
+33; OK
+34; OK
+35; OK
+36; OK
+37; OK
+38; OK
+39; OK
+40; OK
+41; OK
+42; OK
+43; OK
+44; OK
+45; OK
+46; OK
+47; OK
+48; OK
+49; OK
+50; OK
+51; OK
+52; OK
+53; OK
+54; OK
+55; OK
+56; OK
+57; OK
+58; OK
+59; OK
+60; OK
+61; OK
+62; OK
+63; OK
+64; OK
+65; OK
+66; OK
+67; OK
+68; OK
+69; OK
+70; OK
+71; OK
+72; OK
+73; OK
+74; OK
+75; OK
+76; OK
+77; OK
+78; OK
+79; OK
+80; OK
+81; OK
+82; OK
+83; OK
+84; OK
+85; OK
+86; OK
+87; OK
+88; OK
+89; OK
+90; OK
+91; OK
+92; OK
+93; OK
+94; OK
+95; OK
+96; OK
+97; OK
+98; OK
+99; OK
+100; OK
 shifts
 1; OK; OK
 2; OK; OK
@@ -61,6 +141,16 @@ shifts
 18; OK; OK
 19; OK; OK
 20; OK; OK
+21; OK; OK
+22; OK; OK
+23; OK; OK
+24; OK; OK
+25; OK; OK
+26; OK; OK
+27; OK; OK
+28; OK; OK
+29; OK; OK
+30; OK; OK
 comp
 1; OK
 2; OK
@@ -82,6 +172,26 @@ comp
 18; OK
 19; OK
 20; OK
+21; OK
+22; OK
+23; OK
+24; OK
+25; OK
+26; OK
+27; OK
+28; OK
+29; OK
+30; OK
+31; OK
+32; OK
+33; OK
+34; OK
+35; OK
+36; OK
+37; OK
+38; OK
+39; OK
+40; OK
 ba
 1; OK; OK; OK; OK; OK
 2; OK; OK; OK; OK; OK
@@ -103,3 +213,33 @@ ba
 18; OK; OK; OK; OK; OK
 19; OK; OK; OK; OK; OK
 20; OK; OK; OK; OK; OK
+21; OK; OK; OK; OK; OK
+22; OK; OK; OK; OK; OK
+23; OK; OK; OK; OK; OK
+24; OK; OK; OK; OK; OK
+25; OK; OK; OK; OK; OK
+26; OK; OK; OK; OK; OK
+27; OK; OK; OK; OK; OK
+28; OK; OK; OK; OK; OK
+29; OK; OK; OK; OK; OK
+30; OK; OK; OK; OK; OK
+31; OK; OK; OK; OK; OK
+32; OK; OK; OK; OK; OK
+33; OK; OK; OK; OK; OK
+34; OK; OK; OK; OK; OK
+35; OK; OK; OK; OK; OK
+36; OK; OK; OK; OK; OK
+37; OK; OK; OK; OK; OK
+38; OK; OK; OK; OK; OK
+39; OK; OK; OK; OK; OK
+40; OK; OK; OK; OK; OK
+41; OK; OK; OK; OK; OK
+42; OK; OK; OK; OK; OK
+43; OK; OK; OK; OK; OK
+44; OK; OK; OK; OK; OK
+45; OK; OK; OK; OK; OK
+46; OK; OK; OK; OK; OK
+47; OK; OK; OK; OK; OK
+48; OK; OK; OK; OK; OK
+49; OK; OK; OK; OK; OK
+50; OK; OK; OK; OK; OK
