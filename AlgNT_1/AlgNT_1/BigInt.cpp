@@ -597,10 +597,10 @@ BigInt & BigInt::operator *= (const bui a)
 	if (a == 0 || isNull())
 		return *this = BigInt();
 
-	BigInt::lui carry = 0;
+	BigInt::lui carry = 0, A = (BigInt::lui) a;
 
 	for (auto & el : data) {
-		BigInt::lui r = carry + el * (BigInt::lui)a;
+		BigInt::lui r = carry + el * A;
 		carry = r >> BigInt::SOI;
 		el = (BigInt::bui)(r & BigInt::C_MAX_DIG);
 	}
@@ -634,13 +634,21 @@ void BigInt::div(const BigInt & d, BigInt & Q, BigInt & R) const
 		int k = (int)R.dig(), l = (int)B.dig();
 		Q.data.resize(k - l + 1);
 		R.data.reserve(k + 1);
+		
+		BigInt BS;
+		BS.data.reserve(l + 1);
 
 		for (int i = k - l; i >= 0; --i) {
 			R.data.resize(i + l + 1, 0);
 			lui temp = ( ((lui)(R[i + l]) << SOI) | R[i + l - 1]) / eldest_dig;
 			temp = (temp > C_MAX_DIG ? C_MAX_DIG : temp);
 			R.normalize();
-			subAbs(R, (bui)temp * B, i);
+
+			BS.data = B.data;
+			BS.sgn = B.sgn;
+			BS *= (bui)temp;
+			subAbs(R, BS, i);
+
 			while (R.isNeg())
 			{
 				subAbs(R, B, i);
