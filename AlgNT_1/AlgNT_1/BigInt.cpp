@@ -566,10 +566,14 @@ BigInt BigInt::operator * (const BigInt & a) const {
 			auto m2 = m >> 1;
 
 			BigInt A0, A1, B0, B1;
-			A0.data.assign(data.begin(), data.begin() + m2);
-			B0.data.assign(a.data.begin(), a.data.begin() + m2);
-			A1.data.assign(data.begin() + m2, data.end());
-			B1.data.assign(a.data.begin() + m2, a.data.end());
+			A0.data.resize(m2);
+			B0.data.resize(m2);
+			A1.data.resize(k - m2);
+			B1.data.resize(l - m2);
+			memcpy(A0.data.data(), data.data(),			m2 * sizeof(bui));
+			memcpy(B0.data.data(), a.data.data(),		m2 * sizeof(bui));
+			memcpy(A1.data.data(), data.data() + m2,	(k - m2) * sizeof(bui));
+			memcpy(B1.data.data(), a.data.data() + m2,	(l - m2) * sizeof(bui));
 			A0.sgn = A1.sgn = B0.sgn = B1.sgn = 1;
 
 			res = A0*B0;
