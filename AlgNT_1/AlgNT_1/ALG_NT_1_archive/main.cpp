@@ -62,9 +62,9 @@ int main() {
 	
 	using Testing::TestType;
 	auto ts = Testing::test_time("Tests/tests2.txt", {
-		{ TestType::IO, 200 },
+		{ TestType::IO, 300 },
 		{ TestType::UNARY, 100 },
-		{ TestType::BINARY, 1000 },
+		{ TestType::BINARY, 1500 },
 		{ TestType::SHIFTS, 1000 },
 		{ TestType::COMP, 1000 } });
 	for (auto p : ts) {

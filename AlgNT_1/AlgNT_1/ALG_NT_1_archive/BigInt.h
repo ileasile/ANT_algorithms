@@ -36,6 +36,8 @@ public:
 	static const lui C_MAX_DIG_1 = (lui)std::numeric_limits<bui>::max() + 1;
 	static const lui C_MAX_DIG = (lui)std::numeric_limits<bui>::max();
 	static const unsigned char LOG_SOI = BigIntUtility::_log2(SOI);
+	static const unsigned int KARATSUBA_LIMIT = 55;
+
 	static const BigInt C_1;
 	template<typename signed_int>
 	static char sign(signed_int val);

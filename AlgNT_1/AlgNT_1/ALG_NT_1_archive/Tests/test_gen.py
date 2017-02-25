@@ -39,7 +39,7 @@ WRITE_RESULTS = True
 f.write("5\n");
 
 #input/output
-NTESTS = 20
+NTESTS = 40
 f.write("io " + str(NTESTS) +"\n");
 for i in range(NTESTS):
     f.write(rsnum(rand_int(i*20, (i+1)*20)));
@@ -59,7 +59,7 @@ for i in range(NTESTSUNARY):
         f.write(s + "\n");
 
 #shifts
-NTESTSSHIFT = 30;
+NTESTSSHIFT = 50;
 f.write("shifts " + str(NTESTSSHIFT) +"\n");
 for i in range(NTESTSSHIFT):
     s = rnum(rand_int(i*20, (i+1)*20))
@@ -73,7 +73,7 @@ for i in range(NTESTSSHIFT):
         f.write(s + " " + str(n) + "\n");
 
 #comparison
-NTESTS = 40;
+NTESTS = 100;
 f.write("comp " + str(NTESTS) +"\n");
 for i in range(NTESTS):
     s1 = rsnum(rand_int(i*5, (i+1)*5))
@@ -91,7 +91,7 @@ for i in range(NTESTS):
         f.write(s1 + " " + s2 + "\n");
 
 #binary arithmetics
-NTESTS = 50;
+NTESTS = 100;
 f.write("ba " + str(NTESTS) +"\n");
 for i in range(NTESTS):
     s1 = rsnum(rand_int((i+3)*50, (i+4)*50))
