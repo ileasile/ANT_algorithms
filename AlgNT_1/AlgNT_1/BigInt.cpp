@@ -536,7 +536,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 
 	BigInt res;
 	auto k = dig(), l = a.dig();
-	
+	auto ke = k + (k & 1), le = l + (l & 1);
 	res.data.reserve(k + l);
 
 	if (std::min(k, l) < KARATSUBA_LIMIT) {
@@ -545,7 +545,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 		}
 	}
 	else {
-		if (k >= 2 * l) {
+		if (ke >= 2 * le) {
 			for (size_t i = 0; i < k; i += l) {
 				BigInt A;
 				A.data.assign(this->data.begin() + i, this->data.begin() + i + std::min(l, k - i));
@@ -553,7 +553,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 				addAbs(res, A * a, i);
 			}
 		}
-		else if (l >= 2 * k) {
+		else if (le >= 2 * ke) {
 			for (size_t i = 0; i < l; i += k) {
 				BigInt A;
 				A.data.assign(a.data.begin() + i, a.data.begin() + i + std::min(k, l - i));
@@ -562,7 +562,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 			}
 		}
 		else {
-			auto m = std::max(k + (k & 1), l + (l & 1));
+			auto m = std::max(ke, le);
 			auto m2 = m >> 1;
 
 			BigInt A0, A1, B0, B1;
