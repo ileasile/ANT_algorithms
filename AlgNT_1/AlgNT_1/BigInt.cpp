@@ -578,7 +578,7 @@ BigInt BigInt::operator * (const BigInt & a) const {
 
 			res = A0*B0;
 			BigInt A1B1 = A1*B1;
-			BigInt mid = (A0 + A1)*(B0 + B1);
+			BigInt mid = addAbs(A0, A1)*addAbs(B0, B1);
 			subAbs(subAbs(mid, res), A1B1);
 			
 			addAbs(res, mid, m2);
@@ -658,7 +658,7 @@ void BigInt::div(const BigInt & d, BigInt & Q, BigInt & R) const
 			Q[i] = (bui)temp;
 		}
 		R >>= bits_shift;
-		R.data.shrink_to_fit();
+		//R.data.shrink_to_fit();
 		Q.sgn = 1;
 	}
 
