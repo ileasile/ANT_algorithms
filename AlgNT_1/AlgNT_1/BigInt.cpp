@@ -251,6 +251,14 @@ BigInt & BigInt::normalize() {
 	if (data.size() == 0) sgn = 0;
 	return *this;
 }
+BigInt::buip BigInt::get_ptr()
+{
+	return data.data();
+}
+BigInt::buicp BigInt::get_ptr() const
+{
+	return data.data();
+}
 size_t BigInt::dig() const {
 	return data.size();
 }
@@ -313,40 +321,7 @@ void BigInt::elementary_subs(lsi & r, lsi & carry) {
 }
 
 BigInt & BigInt::addAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
-	if (b.isNull()) {
-		if (a.isNeg())
-			a.negate();
-		return a;
-	}
-	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
-	//a.data.reserve(std::max(a.dig(), b.dig() + sh));
-
-	auto it1 = a.data.begin() + sh;
-	auto it2 = b.data.cbegin();
-
-	lui carry = 0;
-	for (;it1 != a.data.end() && it2 != b.data.end(); ++it1, ++it2) {
-		lui r = carry + *it1 + *it2;
-		shift_con_uu(r, carry);
-		*it1 = (bui)r;
-	}
-	for (;it1 != a.data.end() && carry > 0; ++it1) {
-		lui r = carry + *it1;
-		shift_con_uu(r, carry);
-		*it1 = (bui)r;
-	}
-	for (;it2 != b.data.end(); ++it2) {
-		lui r = carry + *it2;
-		shift_con_uu(r, carry);
-		a.data.push_back((bui)r);
-	}
-	if (carry > 0) {
-		a.data.push_back((bui)carry);
-	}
-
-	a.sgn = 1;
-
-	return a;
+	return add_abs_ptr(a, b.data.data(), b.data.data() + b.data.size(), bigShiftB);
 }
 BigInt & BigInt::subAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
 	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
@@ -409,6 +384,104 @@ BigInt & BigInt::addSign(BigInt & a, const BigInt & b, char sign) {
 	if (a.sgn > 0) return subAbs(a, b);
 	return subAbs(a, b).negate();
 }
+
+BigInt BigInt::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign)
+{
+	size_t k = size_t(ae - a), l = size_t(be - b);
+	if (!k || !l)
+		return BigInt();
+
+	BigInt res;
+	auto ke = k + (k & 1), le = l + (l & 1);
+
+	if (std::min(k, l) < KARATSUBA_LIMIT) {
+		lui tmp;
+		bui carry;
+		res.data.resize(k + l, 0);
+		for (size_t i = 0; i < k; ++i) {
+			carry = 0;
+			for (size_t j = 0;j < l;++j) {
+				tmp = (lui)a[i] * b[j] + (lui)res[i + j] + carry;
+				carry = (bui)(tmp >> SOI);
+				res[i + j] = tmp & C_MAX_DIG;
+			}
+			res[i + l] = carry;
+		}
+	}
+	else {
+		res.data.reserve(k + l);
+		if (ke >= 2 * le) {
+			for (size_t i = 0; i < k; i += l) {
+				addAbs(res, mult(b, be, a + i, a + i + std::min(l, k - i), 1), i);
+			}
+		}
+		else if (le >= 2 * ke) {
+			for (size_t i = 0; i < l; i += k) {
+				addAbs(res, mult(a, ae, b + i, b + i + std::min(k, l - i), 1), i);
+			}
+		}
+		else {
+			auto m = std::max(ke, le);
+			auto m2 = m >> 1;
+
+			BigInt A0, B0;
+			A0.data.resize(m2);
+			B0.data.resize(m2);
+			memcpy(A0.data.data(), a,		m2 * sizeof(bui));
+			memcpy(B0.data.data(), b,		m2 * sizeof(bui));
+			A0.sgn = B0.sgn = 1;
+			
+			res = mult(a, a+m2, b, b+m2, 1);
+			BigInt mid = add_abs_ptr(A0, a + m2, ae) * add_abs_ptr(B0, b + m2, be);
+			BigInt A1B1 = mult(a + m2, ae, b + m2, be, 1);
+			subAbs(subAbs(mid, res), A1B1);
+
+			addAbs(res, mid, m2);
+			addAbs(res, A1B1, m);
+		}
+	}
+
+	res.sgn = res_sign;
+	return res;
+}
+BigInt & BigInt::add_abs_ptr(BigInt & a, const buicp b, const buicp be, long long bigShiftB)
+{
+	if (be - b == 0) {
+		if (a.isNeg())
+			a.negate();
+		return a;
+	}
+	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
+	//a.data.reserve(std::max(a.dig(), b.dig() + sh));
+
+	auto it1 = a.data.begin() + sh;
+	auto it2 = b;
+
+	lui carry = 0;
+	for (;it1 != a.data.end() && it2 != be; ++it1, ++it2) {
+		lui r = carry + *it1 + *it2;
+		shift_con_uu(r, carry);
+		*it1 = (bui)r;
+	}
+	for (;it1 != a.data.end() && carry > 0; ++it1) {
+		lui r = carry + *it1;
+		shift_con_uu(r, carry);
+		*it1 = (bui)r;
+	}
+	for (;it2 != be; ++it2) {
+		lui r = carry + *it2;
+		shift_con_uu(r, carry);
+		a.data.push_back((bui)r);
+	}
+	if (carry > 0) {
+		a.data.push_back((bui)carry);
+	}
+
+	a.sgn = 1;
+
+	return a;
+}
+
 BigInt BigInt::operator + (const BigInt & a) const {
 	auto r = *this;
 	return r += a;
@@ -531,63 +604,8 @@ BigInt operator * (const BigInt & b, BigInt::bui a) {
 	return a*b;
 }
 BigInt BigInt::operator * (const BigInt & a) const {
-	if (isNull() || a.isNull())
-		return BigInt();
-
-	BigInt res;
-	auto k = dig(), l = a.dig();
-	auto ke = k + (k & 1), le = l + (l & 1);
-	res.data.reserve(k + l);
-
-	if (std::min(k, l) < KARATSUBA_LIMIT) {
-		for (size_t i = 0; i < k; ++i) {
-			addAbs(res, data[i] * a, i);
-		}
-	}
-	else {
-		if (ke >= 2 * le) {
-			for (size_t i = 0; i < k; i += l) {
-				BigInt A;
-				A.data.assign(this->data.begin() + i, this->data.begin() + i + std::min(l, k - i));
-				A.sgn = 1;
-				addAbs(res, A * a, i);
-			}
-		}
-		else if (le >= 2 * ke) {
-			for (size_t i = 0; i < l; i += k) {
-				BigInt A;
-				A.data.assign(a.data.begin() + i, a.data.begin() + i + std::min(k, l - i));
-				A.sgn = 1;
-				addAbs(res, A * *this, i);
-			}
-		}
-		else {
-			auto m = std::max(ke, le);
-			auto m2 = m >> 1;
-
-			BigInt A0, A1, B0, B1;
-			A0.data.resize(m2);
-			B0.data.resize(m2);
-			A1.data.resize(k - m2);
-			B1.data.resize(l - m2);
-			memcpy(A0.data.data(), data.data(),			m2 * sizeof(bui));
-			memcpy(B0.data.data(), a.data.data(),		m2 * sizeof(bui));
-			memcpy(A1.data.data(), data.data() + m2,	(k - m2) * sizeof(bui));
-			memcpy(B1.data.data(), a.data.data() + m2,	(l - m2) * sizeof(bui));
-			A0.sgn = A1.sgn = B0.sgn = B1.sgn = 1;
-
-			res = A0*B0;
-			BigInt A1B1 = A1*B1;
-			BigInt mid = addAbs(A0, A1)*addAbs(B0, B1);
-			subAbs(subAbs(mid, res), A1B1);
-			
-			addAbs(res, mid, m2);
-			addAbs(res, A1B1, m);
-		}
-	}
-
-	res.sgn = sgn * a.sgn;
-	return res;
+	
+	return mult(get_ptr(), get_ptr() + dig(), a.get_ptr(), a.get_ptr() + a.dig(), sgn*a.sgn);
 }
 BigInt & BigInt::operator *= (const BigInt & a) {
 	return *this = *this * a;

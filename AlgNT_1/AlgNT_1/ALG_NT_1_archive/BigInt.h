@@ -31,6 +31,9 @@ public:
 	typedef std::pair<BigInt, BigInt> QuRem;
 	typedef std::vector<bui> intvec;
 
+	typedef bui *		buip;
+	typedef const bui *		buicp;
+
 	static const unsigned char SOI = sizeof(bui) * 8;
 	static const unsigned char SOI_1 = SOI - 1;
 	static const lui C_MAX_DIG_1 = (lui)std::numeric_limits<bui>::max() + 1;
@@ -61,7 +64,8 @@ private:
 
 	BigInt & negate();
 	BigInt & normalize();
-
+	buip get_ptr();
+	buicp get_ptr() const;
 	//|a| + |b|
 	static BigInt & addAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
 
@@ -70,6 +74,9 @@ private:
 
 	// a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
+
+	static BigInt mult(buicp a1, buicp a2, buicp b1, buicp b2, char res_sign);
+	static BigInt & add_abs_ptr(BigInt & a, const buicp b, const buicp be, long long bigShiftB = 0);
 
 	inline bui & operator[] (size_t i) {
 		return data[i];

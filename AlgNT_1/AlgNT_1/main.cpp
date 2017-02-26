@@ -55,10 +55,10 @@ int main() {
 
 	Testing::Table t;
 	std::ofstream of;
-	t = Testing::test_correctness("Tests/tests.txt", 100);
+	/*t = Testing::test_correctness("Tests/tests.txt", 200);
 	of.open("Tests/correctness_res.csv");
 	of << t;
-	of.close();
+	of.close();*/
 	
 	using Testing::TestType;
 	auto ts = Testing::test_time("Tests/tests2.txt", {
