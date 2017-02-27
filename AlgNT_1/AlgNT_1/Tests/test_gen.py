@@ -39,15 +39,15 @@ WRITE_RESULTS = True
 f.write("5\n");
 
 #input/output
-NTESTS = 200
+NTESTS = 300
 f.write("io " + str(NTESTS) +"\n");
 for i in range(NTESTS):
-    f.write(rsnum(rand_int(i*20, (i+1)*20)));
+    f.write(rsnum(rand_int(i*50, (i+1)*50)));
     f.write("\n");
 
 
 #unary arithmetics
-NTESTSUNARY = 200;
+NTESTSUNARY = 300;
 f.write("ua " + str(NTESTSUNARY) +"\n");
 for i in range(NTESTSUNARY):
     s = rsnum(rand_int(i*20, (i+1)*20))
@@ -59,10 +59,10 @@ for i in range(NTESTSUNARY):
         f.write(s + "\n");
 
 #shifts
-NTESTSSHIFT = 200;
+NTESTSSHIFT = 300;
 f.write("shifts " + str(NTESTSSHIFT) +"\n");
 for i in range(NTESTSSHIFT):
-    s = rnum(rand_int(i*20, (i+1)*20))
+    s = rnum(rand_int(i*100, (i+1)*100))
     n = rand_int(0, 10000);
     if WRITE_RESULTS:
         a = int(s, BASE);
@@ -73,11 +73,11 @@ for i in range(NTESTSSHIFT):
         f.write(s + " " + str(n) + "\n");
 
 #comparison
-NTESTS = 200;
+NTESTS = 300;
 f.write("comp " + str(NTESTS) +"\n");
 for i in range(NTESTS):
-    s1 = rsnum(rand_int(i*5, (i+1)*5))
-    s2 = rsnum(rand_int(i*5, (i+1)*5))
+    s1 = rsnum(rand_int(i*50, (i+1)*50))
+    s2 = rsnum(rand_int(i*50, (i+1)*50))
     if WRITE_RESULTS:
         a = int(s1, BASE);
         b = int(s2, BASE);
@@ -91,7 +91,7 @@ for i in range(NTESTS):
         f.write(s1 + " " + s2 + "\n");
 
 #binary arithmetics
-NTESTS = 200;
+NTESTS = 300;
 f.write("ba " + str(NTESTS) +"\n");
 for i in range(NTESTS):
     s1 = rsnum(rand_int((i+3)*50, (i+4)*50))

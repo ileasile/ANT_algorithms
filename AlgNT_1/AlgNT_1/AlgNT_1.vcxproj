@@ -114,6 +114,7 @@
   <ItemGroup>
     <ClCompile Include="BigInt.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="_get_cpu_time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BigInt.h" />

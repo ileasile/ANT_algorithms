@@ -26,6 +26,20 @@ unsigned_int BigInt::pow_num(unsigned_int val, char n)
 	return res;
 }
 
+BigInt::bui BigInt::last_possible_power(bui n, int & last_p)
+{
+	last_p = 0;
+	unsigned long long last_pow = 1;
+	while (1) {
+		last_pow *= n;
+		if (last_pow > std::numeric_limits<unsigned>::max()) {
+			last_pow /= n;
+			return bui(last_pow);
+		}
+		++last_p;
+	}
+}
+
 unsigned char BigInt::digval(char digit) {
 	if (digit >= '0' && digit <= '9') {
 		return digit - '0';
@@ -38,14 +52,14 @@ unsigned char BigInt::digval(char digit) {
 	}
 	throw BigIntIllegalDigitException();
 }
-std::string BigInt::dig_by_val(bui val) {
+char BigInt::dig_by_val(bui val) {
 	if (val >= 0 && val <= 9) {
-		return std::string(1, '0' + val);
+		return '0' + val;
 	}
 	if (val >= 10 && val <= 35) {
-		return std::string(1, 'A' + val - 10);
+		return 'A' + val - 10;
 	}
-	return "(" + std::to_string(val) + ")";
+	throw BigIntIllegalDigitException();
 }
 
 template<typename int_type>
@@ -74,16 +88,8 @@ BigInt::BigInt(const std::string & val, unsigned inB) {
 		return;
 	}
 
-	int MAX_CHAR_READ = 0;
-	unsigned long long last_pow = 1;
-	while (1) {
-		last_pow *= inB;
-		if (last_pow > std::numeric_limits<unsigned>::max()) {
-			last_pow /=inB;
-			break;
-		}
-		++MAX_CHAR_READ;
-	}
+	int MAX_CHAR_READ;
+	auto last_pow = last_possible_power(inB, MAX_CHAR_READ);
 
 	char res_sgn = 1;
 	auto p = val.data();
@@ -155,7 +161,9 @@ BigInt::operator bool(){
 BigInt::operator int() {
 	const int iters = sizeof(int) / sizeof(bui);
 	unsigned res = 0;
-	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+	for (int i = iters - 1; i >= 0; --i) {
+		if (i >= dig())
+			continue;
 		res <<= SOI;
 		res += data[i];
 	}
@@ -164,25 +172,31 @@ BigInt::operator int() {
 BigInt::operator long long() {
 	const int iters = sizeof(long long) / sizeof(bui);
 	unsigned long long res = 0;
-	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+	for (int i = iters - 1; i >= 0; --i) {
+		if (i >= dig())
+			continue;
 		res <<= SOI;
 		res += data[i];
 	}
 	return (long long)res * sgn;
 }
 BigInt::operator unsigned() {
-	const int iters = sizeof(int) / sizeof(bui);
+	const int iters = sizeof(unsigned) / sizeof(bui);
 	unsigned res = 0;
-	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+	for (int i = iters - 1; i >= 0; --i) {
+		if (i >= dig())
+			continue;
 		res <<= SOI;
 		res += data[i];
 	}
 	return res;
 }
 BigInt::operator unsigned long long() {
-	const int iters = sizeof(long long) / sizeof(bui);
+	const int iters = sizeof(unsigned long long) / sizeof(bui);
 	unsigned long long res = 0;
-	for (size_t i = 0; i < iters && i < data.size(); ++i) {
+	for (int i = iters-1; i >= 0; --i) {
+		if (i >= dig())
+			continue;
 		res <<= SOI;
 		res += data[i];
 	}
@@ -208,14 +222,34 @@ std::string BigInt::to_string(BigInt base) const {
 	}
 	else {
 		BigInt A = abs(), R, Q;
+
+		int char_written;
+		bui base_int = base[0];
+		BigInt PowerB = last_possible_power(base_int, char_written);
+		std::string str(char_written, '0');
+
 		while (A.isPos()) {
-			A.div(base, Q, R);
+			A.div(PowerB, Q, R);
 			A = Q;
-			if (R.isNull())
-				out.push_back("0");
-			else {
-				out.push_back(BigInt::dig_by_val(R.data[0]));
+			bui r0 = bui(R);
+
+			if (A.isNull()) {
+				str = "";
+				while (r0) {
+					str = BigInt::dig_by_val(r0 % base_int) + str;
+					r0 /= base_int;
+				}
 			}
+			else {
+				std::fill(str.begin(), str.end(), '0');
+				int i = char_written;
+				while (r0) {
+					str[--i] = BigInt::dig_by_val(r0 % base_int);
+					r0 /= base_int;
+				}
+			}
+
+			out.push_back(str);
 		}
 	}
 	for (auto it = out.rbegin(); it != out.rend(); ++it) {
@@ -304,68 +338,16 @@ bool BigInt::operator>= (const BigInt & a) const {
 }
 
 template<unsigned char shift, BigInt::lui mask>
-void BigInt::shift_con_uu(lui & r, lui & carry) {
-	carry = r >> shift;
+void BigInt::shift_con_uu(lui & r, unsigned char & carry) {
+	carry = unsigned char(r >> shift);
 	r &= mask;
-}
-
-template<BigInt::lui added_val>
-void BigInt::elementary_subs(lsi & r, lsi & carry) {
-	if (r < 0) {
-		r += added_val;
-		carry = -1;
-	}
-	else {
-		carry = 0;
-	}
 }
 
 BigInt & BigInt::addAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
 	return add_abs_ptr(a, b.data.data(), b.data.data() + b.data.size(), bigShiftB);
 }
 BigInt & BigInt::subAbs(BigInt & a, const BigInt & b, long long bigShiftB) {
-	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
-	//a.data.reserve(std::max(a.dig(), b.dig() + sh));
-
-	auto ita = a.data.begin() + sh;
-	auto itb = b.data.begin();
-	
-	lsi carry = 0;
-	for (;ita != a.data.end() && itb != b.data.end(); ++ita, ++itb) {
-		lsi r = carry + *ita - *itb;
-		elementary_subs(r, carry);
-		*ita = (bui)r;
-	}
-	for (;ita != a.data.end() && carry != 0; ++ita) {
-		lsi r = carry + *ita;
-		elementary_subs(r, carry);
-		*ita = (bui)r;
-	}
-	for (;itb != b.data.end(); ++itb) {
-		lsi r = carry - *itb;
-		elementary_subs(r, carry);
-		a.data.push_back((bui)r);
-	}
-	if (carry) {
-		auto it = a.data.begin();
-		while (it != a.data.end() && *it == 0) ++it;
-		if (it != a.data.end()) {
-			*it = (bui)(C_MAX_DIG_1 - *it);
-			++it;
-			for (; it != a.data.end(); ++it) {
-				*it = C_MAX_DIG - *it;
-			}
-		}
-		a.sgn = -1;
-	}
-	else {
-		a.sgn = 1;
-	}
-	
-	a.normalize();
-	//a.data.shrink_to_fit();
-	return a;
-	//std::cout <<" = "<< a <<"\n";
+	return sub_abs_ptr(a, b.data.data(), b.data.data() + b.data.size(), bigShiftB);
 }
 BigInt & BigInt::addSign(BigInt & a, const BigInt & b, char sign) {
 	if (a.sgn * b.sgn * sign >= 0) {
@@ -444,7 +426,7 @@ BigInt BigInt::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign)
 	res.sgn = res_sign;
 	return res;
 }
-BigInt & BigInt::add_abs_ptr(BigInt & a, const buicp b, const buicp be, long long bigShiftB)
+BigInt & BigInt::add_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
 {
 	if (be - b == 0) {
 		if (a.isNeg())
@@ -457,21 +439,35 @@ BigInt & BigInt::add_abs_ptr(BigInt & a, const buicp b, const buicp be, long lon
 	auto it1 = a.data.begin() + sh;
 	auto it2 = b;
 
-	lui carry = 0;
+	unsigned char carry = 0;
 	for (;it1 != a.data.end() && it2 != be; ++it1, ++it2) {
-		lui r = carry + *it1 + *it2;
+#ifdef __INTEL__
+		carry = _addcarryx_u32(carry, *it1, *b, &(*it1));
+#else
+		lui r = (lui)carry + *it1 + *it2;
 		shift_con_uu(r, carry);
 		*it1 = (bui)r;
+#endif	
 	}
 	for (;it1 != a.data.end() && carry > 0; ++it1) {
-		lui r = carry + *it1;
+#ifdef __INTEL__
+		carry = _addcarryx_u32(carry, *it1, 0, &(*it1));
+#else
+		lui r = (lui)carry + *it1;
 		shift_con_uu(r, carry);
 		*it1 = (bui)r;
+#endif	
 	}
 	for (;it2 != be; ++it2) {
-		lui r = carry + *it2;
+#ifdef __INTEL__
+		bui _a;
+		carry = _addcarryx_u32(carry, 0, *b, &_a);
+		a.data.push_back(_a);
+#else
+		lui r = (lui)carry + *it2;
 		shift_con_uu(r, carry);
 		a.data.push_back((bui)r);
+#endif
 	}
 	if (carry > 0) {
 		a.data.push_back((bui)carry);
@@ -479,6 +475,79 @@ BigInt & BigInt::add_abs_ptr(BigInt & a, const buicp b, const buicp be, long lon
 
 	a.sgn = 1;
 
+	return a;
+}
+BigInt & BigInt::sub_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
+{
+	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
+	auto ita = a.data.begin() + sh;
+	auto de = b + ((be - b) < (a.data.end() - ita) ? (be - b): (a.data.end() - ita));
+
+	unsigned char carry = 0;
+	for (;b != de; ++ita, ++b) {
+#ifdef __INTRIN_H_
+		carry = _subborrow_u32(carry, *ita, *b, &(*ita));
+#else
+		bui _a = *ita, _b = *b;
+		_b += carry;
+		carry = _b < carry;
+		carry += _a < _b;
+		*ita = _a - _b;
+
+		/*lsi r = (lsi)*ita - (lsi)*b - carry;
+		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
+		*ita = (bui)r;*/
+#endif
+	}
+
+	for (;ita != a.data.end() && carry != 0; ++ita) {
+#ifdef __INTRIN_H_
+		carry = _subborrow_u32(carry, *ita, 0, &(*ita));
+#else
+		bui _a = *ita;
+		*ita = _a - carry;
+		carry = _a < carry;
+		
+		/*lsi r = (lsi)*ita - carry;
+		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
+		*ita = (bui)r;*/
+#endif		
+	}
+
+	for (;b != be; ++b) {
+#ifdef __INTRIN_H_
+		bui _a;
+		carry = _subborrow_u32(carry, 0, *b, &_a);
+		a.data.push_back(_a);
+#else
+		bui _b = *b;
+		_b += carry;
+		carry = _b < carry;
+		carry += 0 < _b;
+		a.data.push_back(0U - _b);
+
+		/*lsi r = - (lsi)*b - carry;
+		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
+		a.data.push_back((bui)r);*/
+#endif
+	}
+	if (carry) {
+		auto it = a.data.begin();
+		while (it != a.data.end() && *it == 0) ++it;
+		if (it != a.data.end()) {
+			*it = (bui)(C_MAX_DIG_1 - *it);
+			++it;
+			for (; it != a.data.end(); ++it) {
+				*it = C_MAX_DIG - *it;
+			}
+		}
+		a.sgn = -1;
+	}
+	else {
+		a.sgn = 1;
+	}
+
+	a.normalize();
 	return a;
 }
 

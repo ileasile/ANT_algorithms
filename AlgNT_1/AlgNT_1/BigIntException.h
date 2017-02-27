@@ -15,6 +15,6 @@ class BigIntDivideByZeroException : public BigIntException {
 
 class BigIntIllegalDigitException : public BigIntException {
 	const char * what() const noexcept {
-		return "Big Integer: Unknown digit in input";
+		return "Big Integer: Unknown digit in input/output";
 	}
 };

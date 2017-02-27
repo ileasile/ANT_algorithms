@@ -8,6 +8,8 @@
 #include <ctime>
 #include "BigInt.h"
 
+double getCPUTime();
+
 namespace Testing {
 	class Table {
 		std::list<std::list<std::string>> data;
@@ -172,16 +174,16 @@ namespace Testing {
 
 		return t;
 	}
-
+	
 	class Timer {
-		clock_t st;
+		double st;
 	public:
 		void start() {
-			st = clock();
+			st = getCPUTime();
 		}
 		double get() {
-			auto fn = clock();
-			return (fn - st) / (double)CLOCKS_PER_SEC;
+			auto fn = getCPUTime();
+			return (fn - st);
 		}
 	};
 
