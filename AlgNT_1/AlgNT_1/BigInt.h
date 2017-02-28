@@ -99,6 +99,24 @@ private:
 	// a = a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
+	//elementary subs and add operations
+#ifndef __INTRIN_H_
+	inline static unsigned char _addcarry_u32(unsigned char carry, unsigned a, unsigned b, unsigned * res) {
+		*res = a + b + carry;
+		if (*res < a || *res < b) {
+			return 1;
+		}
+		return 0;
+	}
+	inline static unsigned char _subborrow_u32(unsigned char borrow, unsigned a, unsigned b, unsigned * res) {
+		b += borrow;
+		borrow = b < borrow;
+		*res = a - b;
+		return borrow + (a < b);
+	}
+#endif // !__INTRIN_H_
+
+
 	//pointer versions of multiplication, addAbs, subAbs. MUST HAVE for optimization purposes
 	static BigInt mult(buicp a1, buicp a2, buicp b1, buicp b2, char res_sign);
 	static BigInt & add_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB = 0);

@@ -149,15 +149,12 @@ BigInt::~BigInt() {
 BigInt BigInt::operator~() const{
 	return - C_1 - *this ;
 }
-
 bool BigInt::operator!() const{
 	return isNull();
 }
-
 BigInt::operator bool(){
 	return !isNull();
 }
-
 BigInt::operator int() {
 	const int iters = sizeof(int) / sizeof(bui);
 	unsigned res = 0;
@@ -434,40 +431,20 @@ BigInt & BigInt::add_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
 		return a;
 	}
 	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
-	//a.data.reserve(std::max(a.dig(), b.dig() + sh));
-
-	auto it1 = a.data.begin() + sh;
-	auto it2 = b;
+	auto ita = a.data.begin() + sh;
+	auto de = b + std::min(be - b, a.data.end() - ita);
 
 	unsigned char carry = 0;
-	for (;it1 != a.data.end() && it2 != be; ++it1, ++it2) {
-#ifdef __INTEL__
-		carry = _addcarryx_u32(carry, *it1, *b, &(*it1));
-#else
-		lui r = (lui)carry + *it1 + *it2;
-		shift_con_uu(r, carry);
-		*it1 = (bui)r;
-#endif	
+	for (;b != de; ++ita, ++b) {
+		carry = _addcarry_u32(carry, *ita, *b, &(*ita));
 	}
-	for (;it1 != a.data.end() && carry > 0; ++it1) {
-#ifdef __INTEL__
-		carry = _addcarryx_u32(carry, *it1, 0, &(*it1));
-#else
-		lui r = (lui)carry + *it1;
-		shift_con_uu(r, carry);
-		*it1 = (bui)r;
-#endif	
+	for (;ita != a.data.end() && carry > 0; ++ita) {
+		carry = _addcarry_u32(carry, *ita, 0, &(*ita));
 	}
-	for (;it2 != be; ++it2) {
-#ifdef __INTEL__
+	for (;b != be; ++b) {
 		bui _a;
-		carry = _addcarryx_u32(carry, 0, *b, &_a);
+		carry = _addcarry_u32(carry, 0, *b, &_a);
 		a.data.push_back(_a);
-#else
-		lui r = (lui)carry + *it2;
-		shift_con_uu(r, carry);
-		a.data.push_back((bui)r);
-#endif
 	}
 	if (carry > 0) {
 		a.data.push_back((bui)carry);
@@ -481,55 +458,21 @@ BigInt & BigInt::sub_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
 {
 	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
 	auto ita = a.data.begin() + sh;
-	auto de = b + ((be - b) < (a.data.end() - ita) ? (be - b): (a.data.end() - ita));
+	auto de = b + std::min(be - b, a.data.end() - ita);
 
 	unsigned char carry = 0;
 	for (;b != de; ++ita, ++b) {
-#ifdef __INTRIN_H_
 		carry = _subborrow_u32(carry, *ita, *b, &(*ita));
-#else
-		bui _a = *ita, _b = *b;
-		_b += carry;
-		carry = _b < carry;
-		carry += _a < _b;
-		*ita = _a - _b;
-
-		/*lsi r = (lsi)*ita - (lsi)*b - carry;
-		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
-		*ita = (bui)r;*/
-#endif
 	}
 
 	for (;ita != a.data.end() && carry != 0; ++ita) {
-#ifdef __INTRIN_H_
-		carry = _subborrow_u32(carry, *ita, 0, &(*ita));
-#else
-		bui _a = *ita;
-		*ita = _a - carry;
-		carry = _a < carry;
-		
-		/*lsi r = (lsi)*ita - carry;
-		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
-		*ita = (bui)r;*/
-#endif		
+		carry = _subborrow_u32(carry, *ita, 0, &(*ita));	
 	}
 
 	for (;b != be; ++b) {
-#ifdef __INTRIN_H_
 		bui _a;
 		carry = _subborrow_u32(carry, 0, *b, &_a);
 		a.data.push_back(_a);
-#else
-		bui _b = *b;
-		_b += carry;
-		carry = _b < carry;
-		carry += 0 < _b;
-		a.data.push_back(0U - _b);
-
-		/*lsi r = - (lsi)*b - carry;
-		r < 0 ? (r += C_MAX_DIG_1, carry = 1) : (carry = 0);
-		a.data.push_back((bui)r);*/
-#endif
 	}
 	if (carry) {
 		auto it = a.data.begin();
