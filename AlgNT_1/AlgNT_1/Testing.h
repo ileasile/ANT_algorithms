@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <set>
 #include <exception>
 #include <ctime>
 #include "BigInt.h"
@@ -187,142 +188,127 @@ namespace Testing {
 		}
 	};
 
-	std::list<std::pair<std::string, Table>> test_time(
-		std::string tests_path, 
-		std::map<TestType, int> tests_limit = {
-			{ TestType::IO, MAX },
-			{ TestType::UNARY, MAX },
-			{ TestType::BINARY, MAX },
-			{ TestType::SHIFTS, MAX },
-			{ TestType::COMP, MAX } })
-	{
-		std::ifstream f(tests_path);
-		if (!f) throw BadInputTestingException();
+	enum class TestTypeTime {
+		INPUT, OUTPUT, UNARY, ADD, SUB, RSHIFT, LSHIFT, COMP, MULT, DIV
+	};
+	std::map<TestTypeTime, std::tuple<std::string, int, int, int>> type_to_s = {
+		{ TestTypeTime::INPUT,		{"input",		5000, 20,	25} },
+		{ TestTypeTime::OUTPUT,		{"output",		500, 20,	8 } },
+		{ TestTypeTime::UNARY,		{"unary",		500, 1,		100000 } },
+		{ TestTypeTime::ADD,		{"add",			500, 100,	100000 } },
+		{ TestTypeTime::SUB,		{"sub",			500, 100,	100000 } },
+		{ TestTypeTime::RSHIFT,		{"right_sh",	500, 100,	50000 } },
+		{ TestTypeTime::LSHIFT,		{"left_sh",		500, 100,	50000 } },
+		{ TestTypeTime::COMP,		{"comparison",	500, 100,	200000 } },
+		{ TestTypeTime::MULT,		{"mult",		500, 100,	50 } },
+		{ TestTypeTime::DIV,		{"div",			500, 100,	50 } }
+	};
 
-		std::list<std::pair<std::string,Table>> ts;
-		
-		Timer timer;
-		int WORKAROUND;
+	void test_time(std::string prefix, std::set<TestTypeTime> set_of_types) {
+		srand((unsigned)time(0));
+		for (auto type_p : type_to_s) {
+			auto type = type_p.first;
+			if (set_of_types.find(type) == set_of_types.end())
+				continue;
 
-		int NSERIES;
-		f >> NSERIES;
-		for (int i = 1; i <= NSERIES; ++i) {
-			std::string type_s;
-			f >> type_s;
-			auto it = test_type.find(type_s);
-			if (it == test_type.end())
-				throw NoSuchTestTypeTestingException();
-
-
+			auto type_str = std::get<0>(type_p.second);
+			auto ntests = std::get<1>(type_p.second);
+			auto startlen = std::get<2>(type_p.second);
+			auto inclen = std::get<3>(type_p.second);
 			Table t;
-			TestType type = it->second;
-			int NTESTS;
-			f >> NTESTS;
+			
+			for (int k = 1, len = startlen; k <= ntests; len += inclen, ++k) {
+				std::cout << k<< "... ";
+				std::string inp(len, '0');
+				BigInt A, B, C;
+				int sh, p = 0;
+				Timer tim;
+				double res;
+				int rlen = len;
 
-			std::string inp;
-			std::string tmp;
-			double res[10];
-			BigInt A, B, C;
-			int n, m;
-			std::getline(f, inp);
-
-			for (int j = 0; j < NTESTS; ++j) {
-				if (j >= tests_limit[type]) {
-					std::getline(f, inp);
-					//std::cout << inp<< "\n";
-					continue;
+				if (type == TestTypeTime::DIV)
+					A = BigInt::get_random(len * 3 / 2);
+				else if (type != TestTypeTime::INPUT) {
+					A = BigInt::get_random(len);
 				}
-				std::cout << i << ":" << (j + 1) << " ... ";
-				std::list<std::string> row;
-				row.push_back(std::to_string(j + 1));
+				if (type == TestTypeTime::ADD ||
+					type == TestTypeTime::SUB ||
+					type == TestTypeTime::MULT ||
+					type == TestTypeTime::DIV ||
+					type == TestTypeTime::COMP)
+					B = BigInt::get_random(len);
+				if (type == TestTypeTime::LSHIFT ||
+					type == TestTypeTime::RSHIFT)
+					sh = rand() % 10000;
 
-				int legend_val = 0;
 				switch (type)
 				{
-				case TestType::IO:
-					f >> inp;
-					timer.start();
+				case Testing::TestTypeTime::INPUT:
+					std::generate(inp.begin()+1, inp.end(), []() {return '0'+ rand()%10; });
+					inp[0] = '1' + rand() % 9;
+					if (rand() % 2)
+						inp = "-" + inp;
+					tim.start();
 					A = BigInt(inp);
+					res = tim.get();
+					rlen = (int)A.dig();
+					break;
+				case Testing::TestTypeTime::OUTPUT:
+					tim.start();
 					inp = A.to_string();
-					res[0] = timer.get();
-					legend_val = (int)A.dig();
+					res = tim.get();
 					break;
-
-				case TestType::UNARY:
-					f >> A;
-					timer.start();
-					C = -A;
-					res[0] = timer.get();
-					legend_val = (int)C.dig();
+				case Testing::TestTypeTime::UNARY:
+					tim.start();
+					C = - A;
+					res = tim.get();
 					break;
-
-				case TestType::COMP:
-					f >> A >> B;
-					timer.start();
-					m = A.compare(B);
-					WORKAROUND += m;
-					res[0] = timer.get();
-					legend_val = (int) std::max(A.dig(), B.dig());
+				case Testing::TestTypeTime::ADD:
+					tim.start();
+					C = A+B;
+					res = tim.get();
 					break;
-
-				case TestType::SHIFTS:
-					f >> A >> n;
-
-					timer.start();
-					C = A << n;
-					WORKAROUND += C.isPos();
-					res[0] = timer.get();
-
-					timer.start();
-					C = A >> n;
-					WORKAROUND += C.isPos();
-					res[1] = timer.get();
-					legend_val = (int) A.dig();
-					break;
-
-				case TestType::BINARY:
-					f >> A >> B;
-
-					timer.start();
-					C = A + B;
-					WORKAROUND += C.isPos();
-					res[0] = timer.get();
-
-					timer.start();
+				case Testing::TestTypeTime::SUB:
+					tim.start();
 					C = A - B;
-					WORKAROUND += C.isPos();
-					res[1] = timer.get();
-
-					timer.start();
+					res = tim.get();
+					break;
+				case Testing::TestTypeTime::RSHIFT:
+					tim.start();
+					C = A >> sh;
+					res = tim.get();
+					break;
+				case Testing::TestTypeTime::LSHIFT:
+					tim.start();
+					C = A << sh;
+					res = tim.get();
+					break;
+				case Testing::TestTypeTime::COMP:
+					tim.start();
+					C = A.compare(B);
+					res = tim.get();
+					break;
+				case Testing::TestTypeTime::MULT:
+					tim.start();
 					C = A * B;
-					WORKAROUND += C.isPos();
-					res[2] = timer.get();
-
-					timer.start();
+					res = tim.get();
+					break;
+				case Testing::TestTypeTime::DIV:
+					tim.start();
 					C = A / B;
-					WORKAROUND += C.isPos();
-					res[3] = timer.get();
-
-					timer.start();
-					C = A % B;
-					WORKAROUND += C.isPos();
-					res[4] = timer.get();
-
-					legend_val = (int)A.dig();
+					res = tim.get();
+					break;
+				default:
 					break;
 				}
-
-				row.push_back(std::to_string(legend_val));
-				for (int k = 0; k < res_number[type]; ++k) {
-					row.push_back(std::to_string(res[k]));
-				}
-				t.add_row(row);
-				std::getline(f, inp);
+				
+				p += C.isNeg();
+				t.add_row({std::to_string(k), std::to_string(rlen), std::to_string(res)});
 			}
-			ts.push_back(std::make_pair(type_s, t));
+
+			std::ofstream of(prefix + type_str + ".csv");
+			of << t;
+			of.close();
 		}
-		std::cout << WORKAROUND;
-		f.close();
-		return ts;
 	}
 }

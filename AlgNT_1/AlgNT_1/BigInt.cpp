@@ -255,6 +255,24 @@ std::string BigInt::to_string(BigInt base) const {
 	return s.str();
 }
 
+BigInt BigInt::get_random(unsigned digits){
+	static std::mt19937 gen((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
+	
+	BigInt res;
+	if (digits) {
+		res.data.resize(digits);
+		size_t k = res.data.size();
+		auto g = gen();
+		res[--k] = g ? g : g + 1;
+		for (; k-- > 0;) {
+			res[k] = gen();
+		}
+		res.sgn = (gen() & 1) ? 1 : -1;
+	}
+
+	return res;
+}
+
 bool BigInt::isNull() const {
 	return sgn == 0;
 }
@@ -263,6 +281,9 @@ bool BigInt::isNeg() const {
 }
 bool BigInt::isPos() const {
 	return sgn == 1;
+}
+inline char BigInt::signum() const{
+	return sgn;
 }
 BigInt BigInt::abs() const {
 	if (isNeg()) return -*this;
@@ -332,12 +353,6 @@ bool BigInt::operator<= (const BigInt & a) const {
 }
 bool BigInt::operator>= (const BigInt & a) const {
 	return compare(a) >= 0;
-}
-
-template<unsigned char shift, BigInt::lui mask>
-void BigInt::shift_con_uu(lui & r, unsigned char & carry) {
-	carry = unsigned char(r >> shift);
-	r &= mask;
 }
 
 BigInt & BigInt::addAbs(BigInt & a, const BigInt & b, long long bigShiftB) {

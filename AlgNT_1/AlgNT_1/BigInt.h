@@ -9,6 +9,8 @@
 #include <sstream>
 #include <algorithm>
 #include <tuple>
+#include <chrono>
+#include <random>
 #include "BigIntException.h"
 
 namespace BigIntUtility {
@@ -100,13 +102,13 @@ private:
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
 	//elementary subs and add operations
-#ifndef __INTRIN_H_
+	//in case if internistic versions are not defined
+#if !defined(__MACHINEX86_X64) || __MACHINEX86_X64 != __MACHINE
 	inline static unsigned char _addcarry_u32(unsigned char carry, unsigned a, unsigned b, unsigned * res) {
-		*res = a + b + carry;
-		if (*res < a || *res < b) {
-			return 1;
-		}
-		return 0;
+		b += carry;
+		carry = b < carry;
+		*res = a + b;
+		return carry + (*res < a);
 	}
 	inline static unsigned char _subborrow_u32(unsigned char borrow, unsigned a, unsigned b, unsigned * res) {
 		b += borrow;
@@ -114,7 +116,7 @@ private:
 		*res = a - b;
 		return borrow + (a < b);
 	}
-#endif // !__INTRIN_H_
+#endif
 
 
 	//pointer versions of multiplication, addAbs, subAbs. MUST HAVE for optimization purposes
@@ -129,10 +131,6 @@ private:
 	inline const bui & operator[] (size_t i) const {
 		return data[i];
 	}
-
-	//shift-conjuction operation - elementary addition operation
-	template<unsigned char shift = SOI, lui mask = C_MAX_DIG>
-	static inline void shift_con_uu(lui & r, unsigned char & carry);
 
 public:
 	//different constructors
@@ -173,6 +171,9 @@ public:
 	friend std::istream & operator>>(std::istream & s, BigInt & a);
 	std::string to_string(BigInt base = BigInt::outputBase) const;
 
+	//generate random BigInt of d digits
+	static BigInt get_random(unsigned digits);
+
 public:
 	//check if this BigInt is null
 	inline bool isNull() const;
@@ -181,6 +182,8 @@ public:
 	//check if this BigInt is positive
 	inline bool isPos() const;
 	
+	//sign of this BigInt
+	inline char signum() const;
 	//return the absolute value of this BigInt
 	inline BigInt abs() const;
 	//return the number of digits
