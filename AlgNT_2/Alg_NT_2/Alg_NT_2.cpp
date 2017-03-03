@@ -7,5 +7,6 @@ int main(){
 	std::cout << mr << std::endl;
 
 	system("pause");
+
 	return 0;
 }
