@@ -13,6 +13,9 @@ class LasyRecursiveSeq
 	func_type func;
 	vec data;
 
+	bool isset(int i) {
+		return i < data.size() && data[i] != DEFAULT;
+	}
 	void resize(int i) {
 		if (i >= data.size()) {
 			data.resize(i+1, DEFAULT);
@@ -22,7 +25,7 @@ public:
 	LasyRecursiveSeq(func_type func) :func(func) {}
 	//may cause stack overflow
 	mpz_class lazy(int i) {
-		if (i < data.size() && data[i] != DEFAULT) {
+		if (isset(i)) {
 			return data[i];
 		}
 		resize(i);
@@ -30,7 +33,7 @@ public:
 	}
 	//sholdn't cause stack overflow
 	mpz_class operator[](int i) {
-		if (i < data.size() && data[i] != DEFAULT) {
+		if (isset(i)) {
 			return data[i];
 		}
 		resize(i);
@@ -39,8 +42,6 @@ public:
 		}
 		return data[i];
 	}
-private:
-
 };
 const mpz_class LasyRecursiveSeq::DEFAULT = -1;
 
@@ -62,11 +63,14 @@ class LasyRecursiveSeq2
 				data[k].resize(j + 1, DEFAULT);
 		}
 	}
+	bool isset(int i, int j) {
+		return i < data.size() && j < data[i].size() && data[i][j] != DEFAULT;
+	}
 public:
 	LasyRecursiveSeq2(func_type func) :func(func) {}
 	//may cause stack overflow
 	mpz_class lazy(int i, int j) {
-		if (i < data.size() && j < data[i].size() && data[i][j] != DEFAULT) {
+		if (isset(i,j)) {
 			return data[i][j];
 		}
 		resize(i, j);
@@ -74,7 +78,7 @@ public:
 	}
 	//sholdn't cause stack overflow
 	mpz_class at(int i, int j) {
-		if (i < data.size() && j < data[i].size() && data[i][j] != DEFAULT) {
+		if (isset(i,j)) {
 			return data[i][j];
 		}
 		resize(i, j);
@@ -86,8 +90,6 @@ public:
 
 		return data[i][j];
 	}
-private:
-
 };
 const mpz_class LasyRecursiveSeq2::DEFAULT = -1;
 
@@ -107,6 +109,12 @@ mpz_class dellanoi(int n, int m, LasyRecursiveSeq2 & c) {
 	return c.at(n - 1, m - 1) + c.at(n, m - 1) + c.at(n - 1, m);
 }
 
+mpz_class LukSeqU(int P, int Q, int n, LasyRecursiveSeq & c) {
+	if (n <= 1)
+		return n;
+	return P*c[n - 1] - Q*c[n - 2];
+}
+
 int main(){
 	setlocale(0, "Ru");
 	std::cout << "¬ведите желаемый номер номер числа ...: ";
@@ -118,6 +126,10 @@ int main(){
 	LasyRecursiveSeq2 del(dellanoi);
 	std::cout << del.lazy(2,n) << std::endl;
 
+	int P, Q;
+	std::cin >> P >> Q;
+	LasyRecursiveSeq luk([P, Q](int k, LasyRecursiveSeq & c) {return LukSeqU(P, Q, k, c); });
+	std::cout << luk[n] << std::endl;
 	system("pause");
 
 	return 0;
