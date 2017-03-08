@@ -4,6 +4,10 @@
 #include <vector>
 #include <algorithm>
 
+enum class CalcType {
+	STRAIGHT, LAZY
+};
+
 class LasyRecursiveSeq
 {
 	typedef std::function<mpz_class(int, LasyRecursiveSeq &)> func_type;
@@ -12,6 +16,7 @@ class LasyRecursiveSeq
 
 	func_type func;
 	vec data;
+	CalcType ct = CalcType::STRAIGHT;
 
 	bool isset(int i) {
 		return i < data.size() && data[i] != DEFAULT;
@@ -21,10 +26,12 @@ class LasyRecursiveSeq
 			data.resize(i+1, DEFAULT);
 		}
 	}
+
 public:
 	LasyRecursiveSeq(func_type func) :func(func) {}
 	//may cause stack overflow
 	mpz_class lazy(int i) {
+		ct = CalcType::LAZY;
 		if (isset(i)) {
 			return data[i];
 		}
@@ -32,7 +39,8 @@ public:
 		return data[i] = func(i, *this);
 	}
 	//sholdn't cause stack overflow
-	mpz_class operator[](int i) {
+	mpz_class straight(int i) {
+		ct = CalcType::STRAIGHT;
 		if (isset(i)) {
 			return data[i];
 		}
@@ -42,6 +50,25 @@ public:
 		}
 		return data[i];
 	}
+	CalcType calc_type() {
+		return ct;
+	}
+	CalcType calc_type(CalcType nct) {
+		auto oct = ct;
+		ct = nct;
+		return oct;
+	}
+	mpz_class operator[](int i) {
+		switch (ct)
+		{
+		case CalcType::STRAIGHT:
+			return straight(i);
+		case CalcType::LAZY:
+		default:
+			return lazy(i);
+		}
+	}
+	
 };
 const mpz_class LasyRecursiveSeq::DEFAULT = -1;
 
@@ -53,6 +80,7 @@ class LasyRecursiveSeq2
 
 	func_type func;
 	vec data;
+	CalcType ct = CalcType::STRAIGHT;
 
 	void resize(int i, int j) {
 		if (i >= data.size()) {
@@ -66,19 +94,22 @@ class LasyRecursiveSeq2
 	bool isset(int i, int j) {
 		return i < data.size() && j < data[i].size() && data[i][j] != DEFAULT;
 	}
+	
 public:
 	LasyRecursiveSeq2(func_type func) :func(func) {}
 	//may cause stack overflow
 	mpz_class lazy(int i, int j) {
-		if (isset(i,j)) {
+		ct = CalcType::LAZY;
+		if (isset(i, j)) {
 			return data[i][j];
 		}
 		resize(i, j);
 		return data[i][j] = func(i, j, *this);
 	}
 	//sholdn't cause stack overflow
-	mpz_class at(int i, int j) {
-		if (isset(i,j)) {
+	mpz_class straight(int i, int j) {
+		ct = CalcType::STRAIGHT;
+		if (isset(i, j)) {
 			return data[i][j];
 		}
 		resize(i, j);
@@ -89,6 +120,24 @@ public:
 		}
 
 		return data[i][j];
+	}
+	CalcType calc_type() {
+		return ct;
+	}
+	CalcType calc_type(CalcType nct) {
+		auto oct = ct;
+		ct = nct;
+		return oct;
+	}
+	mpz_class at(int i, int j) {
+		switch (ct)
+		{
+		case CalcType::STRAIGHT:
+			return straight(i, j);
+		case CalcType::LAZY:
+		default:
+			return lazy(i, j);
+		}
 	}
 };
 const mpz_class LasyRecursiveSeq2::DEFAULT = -1;
