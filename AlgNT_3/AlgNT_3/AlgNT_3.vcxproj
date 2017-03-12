@@ -95,6 +95,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <StackReserveSize>104857600</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -113,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\AlgNT_1\AlgNT_1\BigInt.cpp" />
+    <ClCompile Include="..\..\AlgNT_1\AlgNT_1\_get_cpu_time.cpp" />
     <ClCompile Include="Euclid.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
