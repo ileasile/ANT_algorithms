@@ -159,7 +159,7 @@ BigInt::operator int() {
 	const int iters = sizeof(int) / sizeof(bui);
 	unsigned res = 0;
 	for (int i = iters - 1; i >= 0; --i) {
-		if (i >= dig())
+		if ((unsigned)i >= dig())
 			continue;
 		res <<= SOI;
 		res += data[i];
@@ -170,7 +170,7 @@ BigInt::operator long long() {
 	const int iters = sizeof(long long) / sizeof(bui);
 	unsigned long long res = 0;
 	for (int i = iters - 1; i >= 0; --i) {
-		if (i >= dig())
+		if ((unsigned)i >= dig())
 			continue;
 		res <<= SOI;
 		res += data[i];
@@ -181,7 +181,7 @@ BigInt::operator unsigned() {
 	const int iters = sizeof(unsigned) / sizeof(bui);
 	unsigned res = 0;
 	for (int i = iters - 1; i >= 0; --i) {
-		if (i >= dig())
+		if ((unsigned)i >= dig())
 			continue;
 		res <<= SOI;
 		res += data[i];
@@ -192,7 +192,7 @@ BigInt::operator unsigned long long() {
 	const int iters = sizeof(unsigned long long) / sizeof(bui);
 	unsigned long long res = 0;
 	for (int i = iters-1; i >= 0; --i) {
-		if (i >= dig())
+		if ((unsigned)i >= dig())
 			continue;
 		res <<= SOI;
 		res += data[i];
@@ -282,12 +282,26 @@ bool BigInt::isNeg() const {
 bool BigInt::isPos() const {
 	return sgn == 1;
 }
-inline char BigInt::signum() const{
+bool BigInt::isOdd() const {
+	return !isNull() && ((data[0] & 1) != 0);
+}
+bool BigInt::isEven() const {
+	return isNull() || ((data[0] & 1) == 0);
+}
+
+char BigInt::signum() const{
 	return sgn;
 }
 BigInt BigInt::abs() const {
 	if (isNeg()) return -*this;
 	else return *this;
+}
+BigInt & BigInt::make_positive()
+{
+	if (*this) {
+		sgn = 1;
+	}
+	return *this;
 }
 BigInt & BigInt::negate() {
 	sgn = -sgn;
@@ -547,9 +561,9 @@ BigInt BigInt::operator -- (int) {
 }
 
 BigInt & BigInt::big_shift(long long n) {
-	if (n >= 0)
+	if (n > 0)
 		data.insert(data.begin(), (size_t)n, 0);
-	else
+	else if (n < 0)
 		data.erase(data.begin(), data.begin() +  std::min((size_t)(-n), data.size()) );
 	return *this;
 }
@@ -632,7 +646,7 @@ BigInt operator * (const BigInt & b, BigInt::bui a) {
 }
 BigInt BigInt::operator * (const BigInt & a) const {
 	
-	return mult(get_ptr(), get_ptr() + dig(), a.get_ptr(), a.get_ptr() + a.dig(), sgn*a.sgn);
+	return mult(get_ptr(), get_ptr() + dig(), a.get_ptr(), a.get_ptr() + a.dig(), sgn*a.sgn).normalize();
 }
 BigInt & BigInt::operator *= (const BigInt & a) {
 	return *this = *this * a;

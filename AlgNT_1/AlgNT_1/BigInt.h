@@ -11,6 +11,7 @@
 #include <tuple>
 #include <chrono>
 #include <random>
+#include <intrin.h>
 #include "BigIntException.h"
 
 namespace BigIntUtility {
@@ -85,19 +86,19 @@ private:
 	//the only nonstatic members: signum of this BigInt and its digits
 	char sgn;
 	intvec data;
-
-	//inverts the sign
-	BigInt & negate();
+	
 	//normalize
 	BigInt & normalize();
 	//returns pointer to internal vector storage
 	buip get_ptr();
 	buicp get_ptr() const;
 
+public:
 	// a = |a| + |b|
-	inline static BigInt & addAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
+	static BigInt & addAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
 	// a = |a| - |b|
-	inline static BigInt & subAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
+	static BigInt & subAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
+private:
 	// a = a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
@@ -176,18 +177,26 @@ public:
 
 public:
 	//check if this BigInt is null
-	inline bool isNull() const;
+	bool isNull() const;
 	//check if this BigInt is negative
-	inline bool isNeg() const;
+	bool isNeg() const;
 	//check if this BigInt is positive
 	inline bool isPos() const;
-	
+	//check if this BigInt is odd
+	bool isOdd() const;
+	//check if this BigInt is even
+	bool isEven() const;
+
+	//inverts the sign
+	BigInt & negate();
 	//sign of this BigInt
-	inline char signum() const;
+	char signum() const;
 	//return the absolute value of this BigInt
-	inline BigInt abs() const;
+	BigInt abs() const;
+	//makes this BigInt positive (sets sign = 1)
+	BigInt & make_positive();
 	//return the number of digits
-	inline size_t dig() const;
+	size_t dig() const;
 
 	// x <=> y: -1 if x < y else (0 if x = y else 1)
 	// |*this| <=> |a|
