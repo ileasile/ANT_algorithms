@@ -111,5 +111,6 @@ int main() {
 	lb.close();
 	gce.close();
 	gbe.close();
+	f.close();
 	return 0;
 }

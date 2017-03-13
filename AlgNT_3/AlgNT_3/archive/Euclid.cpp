@@ -106,7 +106,7 @@ void Euclid::_gcd1_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 	return;
 }
 
-void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res){
+void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res) {
 	//a is even, b is odd
 	if (a.isEven()) {
 		a >>= 1;
@@ -118,7 +118,7 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 		}
 		else {
 			if (u.isNeg()) {
-				u >>= 1; 
+				u >>= 1;
 				--u;
 			}
 			else {
@@ -128,11 +128,6 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 			u -= _b;
 			v += _a;
 		}
-	}
-
-	//a is odd, b is even
-	else if (b.isEven()) {
-		_gcd2_ext(b, a, v, u, res);
 	}
 
 	else {
@@ -146,14 +141,15 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 
 		//a and b are odd, a>b
 		else if (cmp > 0) {
-			BigInt _b = b;
-			_gcd2_ext((a - b) >> 1, b, u, v, res);
+			BigInt _b = b, _a = a;
+			BigInt::subAbs(a, b) >>= 1;
+			_gcd2_ext(a, b, u, v, res);
 			if (u.isEven()) {
 				u >>= 1;
 				v -= u;
 			}
 			else {
-				v -= (u - a) >> 1;
+				v -= (u - _a) >> 1;
 				u -= _b;
 				u >>= 1;
 			}
@@ -161,7 +157,18 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 
 		//a and b are odd, a<b
 		else {
+			BigInt _b = b, _a = a;
+			BigInt::subAbs(b, a) >>= 1;
 			_gcd2_ext(b, a, v, u, res);
+			if (v.isEven()) {
+				v >>= 1;
+				u -= v;
+			}
+			else {
+				u -= (v - _b) >> 1;
+				v -= _a;
+				v >>= 1;
+			}
 		}
 	}
 }
@@ -185,7 +192,13 @@ void Euclid::_gcd2_ext_pre(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigIn
 		a >>= 1;
 		b >>= 1;
 	}
-	_gcd2_ext(a, b, u, v, res);
+
+	if (b.isEven()) {
+		_gcd2_ext(b, a, v, u, res);
+	}
+	else {
+		_gcd2_ext(a, b, u, v, res);
+	}
 	res <<= sh;
 }
 

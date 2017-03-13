@@ -106,68 +106,68 @@ void Euclid::_gcd1_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 	return;
 }
 
-void Euclid::_gcd2_ext(BigInt * a, BigInt * b, BigInt * u, BigInt * v, BigInt * res){
-	//a is odd, b is even
-	if (b->isEven()) {
-		std::swap(a, b);
-		std::swap(u, v);
-		goto __a_is_even;
-	}
-
+void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res) {
 	//a is even, b is odd
-	else if (a->isEven()) {
-		__a_is_even:
-		*a >>= 1;
-		BigInt _a = *a, _b = *b;
+	if (a.isEven()) {
+		a >>= 1;
+		BigInt _a = a, _b = b;
 
 		_gcd2_ext(a, b, u, v, res);
-		if (u->isEven()) {
-			*u >>= 1;
+		if (u.isEven()) {
+			u >>= 1;
 		}
 		else {
-			if (u->isNeg()) {
-				*u >>= 1; 
-				--*u;
+			if (u.isNeg()) {
+				u >>= 1;
+				--u;
 			}
 			else {
-				*u >>= 1;
+				u >>= 1;
 			}
 			_b >>= 1;
-			*u -= _b;
-			*v += _a;
+			u -= _b;
+			v += _a;
 		}
 	}
 
 	else {
-		auto cmp = a->compareAbs(*b);
+		auto cmp = a.compareAbs(b);
 		// a = b
 		if (cmp == 0) {
-			*u = 1;
-			*v = 0;
-			*res = *a;
-			return;
-		}
-
-		//a and b are odd, a<b
-		if (cmp < 0) {
-			std::swap(a, b);
-			std::swap(u, v);
-			goto __a_more_than_b;
+			u = 1;
+			v = 0;
+			res = a;
 		}
 
 		//a and b are odd, a>b
-		else {
-			__a_more_than_b:
-			BigInt _b = *b;
-			_gcd2_ext( &((*a - *b) >> 1), b, u, v, res);
-			if (u->isEven()) {
-				*u >>= 1;
-				*v -= *u;
+		else if (cmp > 0) {
+			BigInt _b = b, _a = a;
+			BigInt::subAbs(a, b) >>= 1;
+			_gcd2_ext(a, b, u, v, res);
+			if (u.isEven()) {
+				u >>= 1;
+				v -= u;
 			}
 			else {
-				*v -= (*u - *a) >> 1;
-				*u -= _b;
-				*u >>= 1;
+				v -= (u - _a) >> 1;
+				u -= _b;
+				u >>= 1;
+			}
+		}
+
+		//a and b are odd, a<b
+		else {
+			BigInt _b = b, _a = a;
+			BigInt::subAbs(b, a) >>= 1;
+			_gcd2_ext(b, a, v, u, res);
+			if (v.isEven()) {
+				v >>= 1;
+				u -= v;
+			}
+			else {
+				u -= (v - _b) >> 1;
+				v -= _a;
+				v >>= 1;
 			}
 		}
 	}
@@ -192,7 +192,13 @@ void Euclid::_gcd2_ext_pre(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigIn
 		a >>= 1;
 		b >>= 1;
 	}
-	_gcd2_ext(&a, &b, &u, &v, &res);
+
+	if (b.isEven()) {
+		_gcd2_ext(b, a, v, u, res);
+	}
+	else {
+		_gcd2_ext(a, b, u, v, res);
+	}
 	res <<= sh;
 }
 
