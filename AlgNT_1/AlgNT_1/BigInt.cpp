@@ -723,9 +723,11 @@ void BigInt::div(const BigInt & d, BigInt & Q, BigInt & R) const
 
 	if (sgn * d.sgn == -1) {
 		Q.negate();
-		--Q;
-		subAbs(R, d);
-		R.negate();
+		if (!R.isNull()) {
+			--Q;
+			subAbs(R, d);
+			R.negate();
+		}
 	}
 
 	if (d.isNeg())
