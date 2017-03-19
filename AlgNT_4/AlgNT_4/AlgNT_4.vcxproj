@@ -112,6 +112,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\AlgNT_1\AlgNT_1\BigInt.cpp" />
+    <ClCompile Include="..\..\AlgNT_1\AlgNT_1\_get_cpu_time.cpp" />
     <ClCompile Include="..\..\AlgNT_3\AlgNT_3\Euclid.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -119,6 +120,8 @@
     <ClInclude Include="..\..\AlgNT_1\AlgNT_1\BigInt.h" />
     <ClInclude Include="..\..\AlgNT_1\AlgNT_1\BigIntException.h" />
     <ClInclude Include="..\..\AlgNT_3\AlgNT_3\Euclid.h" />
+    <ClInclude Include="SquareMatrix.h" />
+    <ClInclude Include="MatrixException.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="input.txt" />

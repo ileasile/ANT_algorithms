@@ -253,4 +253,5 @@ paket-files/
 
 #Tests files
 test*.txt
+output_*.txt
 .idlerc

@@ -1,7 +1,11 @@
-x_1 = -215102974640680249600
-x_2 = 73277266978792781250
-x_3 = -5080175
-x_4 = 0
+There is an equation of 4 variables:
+12 x_1 - 2 x_2 + 0 x_3 + 6 x_4 = -6
+
+ === Solution ===
+x_1 = 0 + 1 k_1 + 0 k_2
+x_2 = 3 + 6 k_1 + 3 k_2
+x_4 = 0 + 0 k_1 + 1 k_2
+x_3 = k_3
+(k_i are any integers)
 
  === Correct! === 
-
