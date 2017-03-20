@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <ctime>
 #include <cstdlib>
+#include <functional>
 
 #include "../../AlgNT_3/AlgNT_3/Euclid.h"
 #include "SquareMatrix.h"
@@ -325,64 +326,56 @@ void generate_rand_vector(size_t size, size_t len, std::vector<BigInt> & a, size
 
 double getCPUTime();
 
+void make_task(
+	std::function<void(std::vector<BigInt> &, BigInt &, std::ostream &, bool)> task, 
+	bool no_output, size_t number_of_tests, size_t len_coef, size_t delta,
+	std::string test_result_file, std::string output_file_prefix) {
+
+	double tim;
+	std::vector<BigInt> a;
+	BigInt b;
+
+	if (number_of_tests != 0) {
+		std::ofstream test_res(test_result_file);
+		std::ofstream f;
+		for (size_t i = 1; i <= number_of_tests; ++i) {
+			std::cout << i << "... ";
+			auto thislen = i * len_coef;
+
+			generate_rand_vector(i, thislen, a, delta);
+			b = BigInt::get_random(thislen);
+			if (!no_output)
+				f.open("output/"+ output_file_prefix + std::to_string(i) + ".txt");
+			tim = getCPUTime();
+			task(a, b, f, no_output);
+			tim = getCPUTime() - tim;
+			test_res << i << "; " << i*thislen << "; " << tim << "\n";
+			if (!no_output)
+				f.close();
+		}
+		test_res.close();
+	}
+}
+
+
+
 int main() {
 	srand((unsigned)time(NULL));
-	std::vector<BigInt> a, x;
-	BigInt b;
 	const bool NO_OUTPUT = true;
 	const size_t NTESTS_ALL = 100;
-	const size_t NTESTS_PART = 0;
+	const size_t NTESTS_PART = 500;
 	const size_t LEN_COEF_ALL = 2;
 	const size_t LEN_COEF_PART = 5;
-	double tim;
+	const size_t DELTA_ALL = 5;
+	const size_t DELTA_PART = 5;
 
-	if (NTESTS_ALL != 0) {
-		std::ofstream test_allsols("test/all_test.csv");
-		std::ofstream f;
-		for (size_t i = 1; i <= NTESTS_ALL; ++i) {
-			std::cout << i << "... ";
-			auto thislen = i * LEN_COEF_ALL;
-
-			generate_rand_vector(i, thislen, a, 1);
-			b = BigInt::get_random(thislen);
-			if (!NO_OUTPUT) {
-				std::string fname = "output/output_all_" + std::to_string(i) + ".txt";
-				f.open(fname);
-			}
-			tim = getCPUTime();
-			task_all(a, b, f, NO_OUTPUT);
-			tim = getCPUTime() - tim;
-			test_allsols << i << "; " << i*thislen << "; " << tim << "\n";
-			if(!NO_OUTPUT)
-				f.close();
-		}
-		test_allsols.close();
-	}
-	if (NTESTS_PART != 0) {
-		std::ofstream test_partsol("test/particular_test.csv");
-		std::ofstream f;
-		for (size_t i = 1; i <= NTESTS_PART; ++i) {
-			std::cout << i << "... ";
-			auto thislen = i * LEN_COEF_PART;
-
-			generate_rand_vector(i, thislen, a, 1);
-			b = BigInt::get_random(thislen);
-			if (!NO_OUTPUT) {
-				std::string fname = "output/output_particular_" + std::to_string(i) + ".txt";
-				f.open(fname);
-			}
-			tim = getCPUTime();
-			task_part(a, b, f, NO_OUTPUT);
-			tim = getCPUTime() - tim;
-			test_partsol << i << "; " << i*thislen << "; " << tim << "\n";
-			if (!NO_OUTPUT)
-				f.close();
-		}
-		test_partsol.close();
-	}
+	make_task(task_all, NO_OUTPUT, NTESTS_ALL, LEN_COEF_ALL, DELTA_ALL, "test/all_test.csv", "output_all_");
+	make_task(task_part, NO_OUTPUT, NTESTS_PART, LEN_COEF_PART, DELTA_PART, "test/particular_test.csv", "output_particular_");	
 	
-	
-	/*std::ifstream fin("input.txt");
+	/*
+	std::vector<BigInt> a;
+	BigInt b;
+	std::ifstream fin("input.txt");
 	std::ofstream fout("output.txt");
 
 	// change to std::cout / std::cin if necessary
