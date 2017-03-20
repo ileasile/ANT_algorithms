@@ -39,7 +39,7 @@ SquareMatrix<BigInt> build_completion(const std::vector<BigInt> & a) {
 			A[k_1][i] = (a[i] / d1) * v;
 		}
 
-		d = d1;
+		d1 = d;
 	}
 
 	return A;
@@ -195,10 +195,12 @@ void print_eq(const std::vector<BigInt> & a, const BigInt & b, std::ostream & ou
 
 	out << "= " << b << "\n\n";
 }
-void task(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout) {
+void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout, bool no_output = false) {
 	int n = a.size();
-	out << "There is an equation of " << n << " variables:\n";
-	print_eq(a, b, out);
+	if (!no_output) {
+		out << "There is an equation of " << n << " variables:\n";
+		print_eq(a, b, out);
+	}
 
 	// Let's delete zero-valued coeffs.
 	std::vector<size_t> ind;
@@ -229,9 +231,12 @@ void task(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout) {
 	std::vector<BigInt> x;
 	std::vector<std::vector<BigInt>> cf;
 	BigInt res, d;
-
+	bool allSolsOK = true;
+	auto  flag = find_all_solutions(a, b, x, cf);
+	if (no_output)
+		return;
 	out << " === Solution ===\n";
-	switch (find_all_solutions(a, b, x, cf))
+	switch (flag)
 	{
 	case AllSolsResult::NO_SOLUTIONS:
 		out << "This equation has no solutions.";
@@ -244,26 +249,70 @@ void task(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout) {
 		for (int i = 1; i <= n; ++i) {
 			out << "x_" << ind[i-1] << " = " << x[i - 1];
 			for (size_t j = 1; j <= cf[i - 1].size(); ++j) {
-				if (cf[i - 1][j - 1].isNeg()) {
-					out << " - " << -cf[i - 1][j - 1];
+				auto cur_cf = cf[i - 1][j - 1];
+				if (cur_cf.isNull())
+					continue;
+				if (cur_cf.isNeg()) {
+					cur_cf.negate();
+					out << " - ";
 				}
 				else {
-					out << " + " << cf[i - 1][j - 1];
+					out << " + ";
 				}
-				out << " k_" << j;
+				if (cur_cf != BigInt(1))
+					out << cur_cf << " ";
+				out << "k_" << j;
 			}
 			out << "\n";
 			res += a[i - 1] * x[i - 1];
 		}
-		
+
+		//check coefficients
+		for (int j = 0; j < n - 1; ++j) {
+			BigInt sum;
+			for (int i = 0; i < n; ++i) {
+				sum += cf[i][j] * a[i];
+			}
+			allSolsOK = allSolsOK && sum == BigInt(0);
+		}
+
 		for (auto i : zero_valued_ind) {
 			out << "x_" << i << " = k_" << n++<<"\n";
 		}
 
 		out << "(k_i are any integers)\n";
 
-		out << ((res == b) ? "\n === Correct! === " : "\n === Incorrect! === ");
+		out << ((res == b && allSolsOK) ? "\n === Correct! === " : "\n === Incorrect! === ");
 		break;
+	}
+}
+void task_part(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout, bool no_output = false) {
+	int n = a.size();
+	if (!no_output) {
+		out << "There is an equation of " << n << " variables:\n";
+		print_eq(a, b, out);
+	}
+
+	//Solve and print the result
+	std::vector<BigInt> x;
+	BigInt res, d;
+
+	auto  flag = solve_Diophantine_eq(a, b, x);
+	if (no_output)
+		return;
+
+	out << " === Partial solution ===\n";
+	if (!flag){
+		out << "This equation has no solutions.";
+	}
+	else {
+		for (int i = 1; i <= n; ++i) {
+			out << "x_" << i << " = " << x[i - 1] << "\n";
+			res += a[i - 1] * x[i - 1];
+		}
+
+		out << "(k_i are any integers)\n";
+		out << (res == b? "\n === Correct! === " : "\n === Incorrect! === ");
 	}
 }
 
@@ -280,42 +329,58 @@ int main() {
 	srand((unsigned)time(NULL));
 	std::vector<BigInt> a, x;
 	BigInt b;
+	const bool NO_OUTPUT = true;
 	const size_t NTESTS_ALL = 100;
-	const size_t NTESTS_PART = 400;
+	const size_t NTESTS_PART = 0;
 	const size_t LEN_COEF_ALL = 2;
 	const size_t LEN_COEF_PART = 5;
 	double tim;
 
-	std::ofstream test_allsols("test/all_test.csv");
-	for (size_t i = 1; i <= NTESTS_ALL; ++i) {
-		std::cout << i << "... ";
-		auto thislen = i *LEN_COEF_ALL;
+	if (NTESTS_ALL != 0) {
+		std::ofstream test_allsols("test/all_test.csv");
+		std::ofstream f;
+		for (size_t i = 1; i <= NTESTS_ALL; ++i) {
+			std::cout << i << "... ";
+			auto thislen = i * LEN_COEF_ALL;
 
-		generate_rand_vector(i, thislen, a, 1);
-		b = BigInt::get_random(thislen);
-		std::string fname = "output/output_" + std::to_string(i) + ".txt";
-		std::ofstream f(fname);
-		tim = getCPUTime();
-		task(a, b, f);
-		tim = getCPUTime() - tim;
-		test_allsols << i << "; " << i*thislen << "; " << tim << "\n";
-		f.close();
+			generate_rand_vector(i, thislen, a, 1);
+			b = BigInt::get_random(thislen);
+			if (!NO_OUTPUT) {
+				std::string fname = "output/output_all_" + std::to_string(i) + ".txt";
+				f.open(fname);
+			}
+			tim = getCPUTime();
+			task_all(a, b, f, NO_OUTPUT);
+			tim = getCPUTime() - tim;
+			test_allsols << i << "; " << i*thislen << "; " << tim << "\n";
+			if(!NO_OUTPUT)
+				f.close();
+		}
+		test_allsols.close();
 	}
-	test_allsols.close();
+	if (NTESTS_PART != 0) {
+		std::ofstream test_partsol("test/particular_test.csv");
+		std::ofstream f;
+		for (size_t i = 1; i <= NTESTS_PART; ++i) {
+			std::cout << i << "... ";
+			auto thislen = i * LEN_COEF_PART;
 
-	std::ofstream test_partsol("test/particular_test.csv");
-	for (size_t i = 1; i <= NTESTS_PART; ++i) {
-		std::cout << i << "... ";
-		auto thislen = i *LEN_COEF_PART;
-
-		generate_rand_vector(i, thislen, a, 1);
-		b = BigInt::get_random(thislen);
-		tim = getCPUTime();
-		solve_Diophantine_eq(a, b, x);
-		tim = getCPUTime() - tim;
-		test_partsol << i << "; " << i*thislen << "; " << tim << "\n";
+			generate_rand_vector(i, thislen, a, 1);
+			b = BigInt::get_random(thislen);
+			if (!NO_OUTPUT) {
+				std::string fname = "output/output_particular_" + std::to_string(i) + ".txt";
+				f.open(fname);
+			}
+			tim = getCPUTime();
+			task_part(a, b, f, NO_OUTPUT);
+			tim = getCPUTime() - tim;
+			test_partsol << i << "; " << i*thislen << "; " << tim << "\n";
+			if (!NO_OUTPUT)
+				f.close();
+		}
+		test_partsol.close();
 	}
-	test_partsol.close();
+	
 	
 	/*std::ifstream fin("input.txt");
 	std::ofstream fout("output.txt");
@@ -324,7 +389,7 @@ int main() {
 	std::vector<BigInt> a;
 	BigInt b;
 	input_task(a, b, fin);
-	task(a, b, fout);
+	task_all(a, b, fout);
 	
 	fin.close();
 	fout.close();*/
