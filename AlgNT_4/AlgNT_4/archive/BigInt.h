@@ -138,9 +138,14 @@ public:
 	BigInt(char sgn, const intvec & data) :sgn(sgn), data(data) {}
 	BigInt(char sgn, const BigInt & a) :sgn(sgn), data(a.data) {}
 	BigInt(const BigInt & a) : sgn(a.sgn), data(a.data) {}
+	BigInt(BigInt && a) : sgn(a.sgn), data(std::move(a.data)) {}
 	BigInt(unsigned long long val, char sign);
 	BigInt(signed long long val = 0L) : BigInt(abs_num(val), sign(val)) {}
 	BigInt(const std::string & val, unsigned inB = BigInt::inputBase);
+
+	//assignment operators
+	BigInt & operator=(const BigInt & a);
+	BigInt & operator=(BigInt && a);
 
 	//construct by vector of any integer type
 	template <class inttype>

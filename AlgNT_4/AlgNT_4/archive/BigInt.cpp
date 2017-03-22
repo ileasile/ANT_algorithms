@@ -142,6 +142,21 @@ BigInt::BigInt(const std::vector<inttype>& v, char sign) {
 	normalize();
 }
 
+BigInt & BigInt::operator=(const BigInt & a) { 
+	if (this != &a) {
+		sgn = a.sgn;
+		data = a.data;
+	}
+	return *this; 
+}
+BigInt & BigInt::operator=(BigInt && a) { 
+	if (this != &a) {
+		sgn = a.sgn;
+		data = std::move(a.data);
+	}
+	return *this; 
+}
+
 BigInt::~BigInt() {
 	data.clear();
 }
