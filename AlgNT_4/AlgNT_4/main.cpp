@@ -368,10 +368,10 @@ int main() {
 	const size_t LEN_COEF_PART = 5;
 	const size_t DELTA_ALL = 5;
 	const size_t DELTA_PART = 5;
-
+	
 	make_task(task_all, NO_OUTPUT, NTESTS_ALL, LEN_COEF_ALL, DELTA_ALL, "test/all_test.csv", "output_all_");
 	make_task(task_part, NO_OUTPUT, NTESTS_PART, LEN_COEF_PART, DELTA_PART, "test/particular_test.csv", "output_particular_");	
-	
+
 	/*
 	std::vector<BigInt> a;
 	BigInt b;

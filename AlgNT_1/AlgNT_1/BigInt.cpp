@@ -170,50 +170,6 @@ bool BigInt::operator!() const{
 BigInt::operator bool(){
 	return !isNull();
 }
-BigInt::operator int() {
-	const int iters = sizeof(int) / sizeof(bui);
-	unsigned res = 0;
-	for (int i = iters - 1; i >= 0; --i) {
-		if ((unsigned)i >= dig())
-			continue;
-		res <<= SOI;
-		res += data[i];
-	}
-	return (int)res * sgn;
-}
-BigInt::operator long long() {
-	const int iters = sizeof(long long) / sizeof(bui);
-	unsigned long long res = 0;
-	for (int i = iters - 1; i >= 0; --i) {
-		if ((unsigned)i >= dig())
-			continue;
-		res <<= SOI;
-		res += data[i];
-	}
-	return (long long)res * sgn;
-}
-BigInt::operator unsigned() {
-	const int iters = sizeof(unsigned) / sizeof(bui);
-	unsigned res = 0;
-	for (int i = iters - 1; i >= 0; --i) {
-		if ((unsigned)i >= dig())
-			continue;
-		res <<= SOI;
-		res += data[i];
-	}
-	return res;
-}
-BigInt::operator unsigned long long() {
-	const int iters = sizeof(unsigned long long) / sizeof(bui);
-	unsigned long long res = 0;
-	for (int i = iters-1; i >= 0; --i) {
-		if ((unsigned)i >= dig())
-			continue;
-		res <<= SOI;
-		res += data[i];
-	}
-	return res;
-}
 
 std::ostream & operator <<(std::ostream & s, const BigInt & a) {
 	return s << a.to_string();
