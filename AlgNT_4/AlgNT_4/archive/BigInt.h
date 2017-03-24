@@ -11,6 +11,7 @@
 #include <tuple>
 #include <chrono>
 #include <random>
+#include <type_traits>
 #include <intrin.h>
 #include "BigIntException.h"
 
@@ -162,10 +163,9 @@ public:
 	BigInt operator~ () const;
 	bool operator! () const;
 	operator bool();
-	explicit operator int();
-	explicit operator long long();
-	explicit operator unsigned();
-	explicit operator unsigned long long();
+
+	template<typename T>
+	explicit operator T (); 
 
 	//static printing options
 	static unsigned inputBase;
@@ -257,3 +257,19 @@ public:
 	BigInt & operator%=(const BigInt & a);
 
 };
+
+template<typename T>
+BigInt::operator T() {
+	static_assert(
+		sizeof(T) % sizeof(bui) == 0 && std::is_integral<T>::value,
+		"Wrong conversion type.");
+	const int iters = sizeof(T) / sizeof(bui);
+	std::make_unsigned<T>::type res = 0;
+	for (size_t i = iters; i --> 0;) {
+		if (i < dig()) {
+			res <<= SOI;
+			res += data[i];
+		}
+	}
+	return T(res) * sgn;
+}

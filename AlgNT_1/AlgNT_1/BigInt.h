@@ -265,7 +265,7 @@ BigInt::operator T() {
 		"Wrong conversion type.");
 	const int iters = sizeof(T) / sizeof(bui);
 	std::make_unsigned<T>::type res = 0;
-	for (size_t i = iters; i-- > 0;) {
+	for (size_t i = iters; i --> 0;) {
 		if (i < dig()) {
 			res <<= SOI;
 			res += data[i];
