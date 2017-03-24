@@ -255,3 +255,5 @@ paket-files/
 test*.txt
 output_*.txt
 .idlerc
+**/include/NTL/**
+**/NTL/**
