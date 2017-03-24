@@ -1,5 +1,37 @@
 #include "BigInt.h"
 
+#if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
+#if __BIGINT_SIZE_OF_PRIMITIVE == 1
+#define __addcarry(a,b,c,d)  ( _addcarry_u8((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow_u8((a),(b),(c),(d)) )
+#elif __BIGINT_SIZE_OF_PRIMITIVE == 2
+#define __addcarry(a,b,c,d)  ( _addcarry_u16((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow_u16((a),(b),(c),(d)) )
+#elif __BIGINT_SIZE_OF_PRIMITIVE == 4
+#define __addcarry(a,b,c,d)  ( _addcarry_u32((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow_u32((a),(b),(c),(d)) )
+#elif __BIGINT_SIZE_OF_PRIMITIVE == 8
+#define __addcarry(a,b,c,d)  ( _addcarry_u64((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow_u64((a),(b),(c),(d)) )
+#endif
+#else
+inline unsigned char _addcarry(unsigned char carry, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
+	b += carry;
+	carry = b < carry;
+	*res = a + b;
+	return carry + (*res < a);
+}
+inline unsigned char _subborrow(unsigned char borrow, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
+	b += borrow;
+	borrow = b < borrow;
+	*res = a - b;
+	return borrow + (a < b);
+}
+
+#define __addcarry(a,b,c,d)  ( _addcarry((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow((a),(b),(c),(d)) )
+#endif
+
 unsigned BigInt::inputBase = 10;
 BigInt BigInt::outputBase = 10;
 bool BigInt::printPlus = false;
@@ -29,10 +61,10 @@ unsigned_int BigInt::pow_num(unsigned_int val, char n)
 BigInt::bui BigInt::last_possible_power(bui n, int & last_p)
 {
 	last_p = 0;
-	unsigned long long last_pow = 1;
+	lui last_pow = 1;
 	while (1) {
 		last_pow *= n;
-		if (last_pow > std::numeric_limits<unsigned>::max()) {
+		if (last_pow > std::numeric_limits<bui>::max()) {
 			last_pow /= n;
 			return bui(last_pow);
 		}
@@ -170,6 +202,10 @@ bool BigInt::operator!() const{
 BigInt::operator bool(){
 	return !isNull();
 }
+BigInt::operator std::string() {
+	return to_string();
+}
+
 
 std::ostream & operator <<(std::ostream & s, const BigInt & a) {
 	return s << a.to_string();
@@ -227,16 +263,16 @@ std::string BigInt::to_string(BigInt base) const {
 }
 
 BigInt BigInt::get_random(unsigned digits){
-	static std::mt19937 gen((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
+	static std::mt19937_64 gen((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
 	
 	BigInt res;
 	if (digits) {
 		res.data.resize(digits);
 		size_t k = res.data.size();
-		auto g = gen();
+		bui g = bui(gen());
 		res[--k] = g ? g : g + 1;
 		for (; k-- > 0;) {
-			res[k] = gen();
+			res[k] = bui(gen());
 		}
 		res.sgn = (gen() & 1) ? 1 : -1;
 	}
@@ -436,14 +472,14 @@ BigInt & BigInt::add_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
 
 	unsigned char carry = 0;
 	for (;b != de; ++ita, ++b) {
-		carry = _addcarry_u32(carry, *ita, *b, &(*ita));
+		carry = __addcarry(carry, *ita, *b, &(*ita));
 	}
 	for (;ita != a.data.end() && carry > 0; ++ita) {
-		carry = _addcarry_u32(carry, *ita, 0, &(*ita));
+		carry = __addcarry(carry, *ita, 0, &(*ita));
 	}
 	for (;b != be; ++b) {
 		bui _a;
-		carry = _addcarry_u32(carry, 0, *b, &_a);
+		carry = __addcarry(carry, 0, *b, &_a);
 		a.data.push_back(_a);
 	}
 	if (carry > 0) {
@@ -462,16 +498,16 @@ BigInt & BigInt::sub_abs_ptr(BigInt & a, buicp b, buicp be, long long bigShiftB)
 
 	unsigned char carry = 0;
 	for (;b != de; ++ita, ++b) {
-		carry = _subborrow_u32(carry, *ita, *b, &(*ita));
+		carry = __subborrow(carry, *ita, *b, &(*ita));
 	}
 
 	for (;ita != a.data.end() && carry != 0; ++ita) {
-		carry = _subborrow_u32(carry, *ita, 0, &(*ita));	
+		carry = __subborrow(carry, *ita, 0, &(*ita));	
 	}
 
 	for (;b != be; ++b) {
 		bui _a;
-		carry = _subborrow_u32(carry, 0, *b, &_a);
+		carry = __subborrow(carry, 0, *b, &_a);
 		a.data.push_back(_a);
 	}
 	if (carry) {
