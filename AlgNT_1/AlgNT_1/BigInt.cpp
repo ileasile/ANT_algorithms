@@ -1,37 +1,5 @@
 #include "BigInt.h"
 
-#if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
-#if __BIGINT_SIZE_OF_PRIMITIVE == 1
-#define __addcarry(a,b,c,d)  ( _addcarry_u8((a),(b),(c),(d)) )
-#define __subborrow(a,b,c,d)  ( _subborrow_u8((a),(b),(c),(d)) )
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 2
-#define __addcarry(a,b,c,d)  ( _addcarry_u16((a),(b),(c),(d)) )
-#define __subborrow(a,b,c,d)  ( _subborrow_u16((a),(b),(c),(d)) )
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 4
-#define __addcarry(a,b,c,d)  ( _addcarry_u32((a),(b),(c),(d)) )
-#define __subborrow(a,b,c,d)  ( _subborrow_u32((a),(b),(c),(d)) )
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 8
-#define __addcarry(a,b,c,d)  ( _addcarry_u64((a),(b),(c),(d)) )
-#define __subborrow(a,b,c,d)  ( _subborrow_u64((a),(b),(c),(d)) )
-#endif
-#else
-inline unsigned char _addcarry(unsigned char carry, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
-	b += carry;
-	carry = b < carry;
-	*res = a + b;
-	return carry + (*res < a);
-}
-inline unsigned char _subborrow(unsigned char borrow, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
-	b += borrow;
-	borrow = b < borrow;
-	*res = a - b;
-	return borrow + (a < b);
-}
-
-#define __addcarry(a,b,c,d)  ( _addcarry((a),(b),(c),(d)) )
-#define __subborrow(a,b,c,d)  ( _subborrow((a),(b),(c),(d)) )
-#endif
-
 unsigned BigInt::inputBase = 10;
 BigInt BigInt::outputBase = 10;
 bool BigInt::printPlus = false;

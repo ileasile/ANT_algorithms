@@ -17,15 +17,23 @@
 #include "BigIntException.h"
 
 #ifndef __BIGINT_SIZE_OF_PRIMITIVE
-#define __BIGINT_SIZE_OF_PRIMITIVE 4
+#define __BIGINT_SIZE_OF_PRIMITIVE 32
 #endif
 
+#define __BIGINT_PASTER1(x,y) x ## y
+#define __BIGINT_EVALUATOR1(x,y)  __BIGINT_PASTER1(x,y)
+#define __BIGINT_SIZE_POSTFIX(NAME)  __BIGINT_EVALUATOR1(NAME, __BIGINT_SIZE_OF_PRIMITIVE)
+
+#define __BIGINT_PASTER2(x) template <> struct uint_t< x > { typedef  uint ## x ## _t type;}
+#define __BIGINT_EVALUATOR2(x)  __BIGINT_PASTER2(x)
+#define __BIGINT_UINT_STRUCT(SIZE)  __BIGINT_EVALUATOR2(SIZE)
+
 static_assert(
-	__BIGINT_SIZE_OF_PRIMITIVE == 1 ||
-	__BIGINT_SIZE_OF_PRIMITIVE == 2 ||
-	__BIGINT_SIZE_OF_PRIMITIVE == 4 ||
-	__BIGINT_SIZE_OF_PRIMITIVE == 8, 
-	"Size of primitive should be 1, 2, 4 or 8");
+	__BIGINT_SIZE_OF_PRIMITIVE == 8 ||
+	__BIGINT_SIZE_OF_PRIMITIVE == 16 ||
+	__BIGINT_SIZE_OF_PRIMITIVE == 32 ||
+	__BIGINT_SIZE_OF_PRIMITIVE == 64, 
+	"Size of primitive should be 8, 16, 32 or 64");
 
 namespace BigIntUtility {
 	//constexpr functions to count integer logarithms
@@ -35,26 +43,25 @@ namespace BigIntUtility {
 	constexpr unsigned char _logb(uint64_t n, uint32_t base) {
 		return ((n <= 1) ? 0 : 1 + _logb(n / base, base));
 	}
+
+	template <int bits> struct uint_t {};
+	__BIGINT_UINT_STRUCT(8);
+	__BIGINT_UINT_STRUCT(16);
+	__BIGINT_UINT_STRUCT(32);
+	__BIGINT_UINT_STRUCT(64);
+
+#if __BIGINT_SIZE_OF_PRIMITIVE == 64
+	template <> struct uint_t< 128 > { typedef unsigned __int128 type; }
+#endif 
+
 }
 
 class BigInt {
 	
 public:
 	//types used by this class
-#if __BIGINT_SIZE_OF_PRIMITIVE == 1
-	typedef uint8_t		bui;
-	typedef uint16_t	lui;
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 2
-	typedef uint16_t	bui;
-	typedef uint32_t	lui;
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 4
-	typedef uint32_t	bui;
-	typedef uint64_t	lui;
-#elif __BIGINT_SIZE_OF_PRIMITIVE == 8
-	typedef uint64_t	bui;
-	typedef uint128_t	lui;
-#endif
-
+	typedef BigIntUtility::uint_t<__BIGINT_SIZE_OF_PRIMITIVE>::type bui;
+	typedef BigIntUtility::uint_t<__BIGINT_SIZE_OF_PRIMITIVE * 2>::type lui;
 	typedef std::make_signed<bui>::type		bsi;
 	typedef std::make_signed<lui>::type		lsi;
 
@@ -122,6 +129,29 @@ public:
 	// a = |a| - |b|
 	static BigInt & subAbs(BigInt & a, const BigInt & b, long long bigShiftB = 0);
 private:
+
+#if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
+#define __addcarry(a,b,c,d)  ( __BIGINT_SIZE_POSTFIX(_addcarry_u) ((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( __BIGINT_SIZE_POSTFIX(_subborrow_u) ((a),(b),(c),(d)) )
+
+#else
+	inline static unsigned char _addcarry(unsigned char carry, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
+		b += carry;
+		carry = b < carry;
+		*res = a + b;
+		return carry + (*res < a);
+	}
+	inline static unsigned char _subborrow(unsigned char borrow, BigInt::bui a, BigInt::bui b, BigInt::bui * res) {
+		b += borrow;
+		borrow = b < borrow;
+		*res = a - b;
+		return borrow + (a < b);
+	}
+
+#define __addcarry(a,b,c,d)  ( _addcarry((a),(b),(c),(d)) )
+#define __subborrow(a,b,c,d)  ( _subborrow((a),(b),(c),(d)) )
+#endif
+
 	// a = a + sign * b
 	static BigInt & addSign(BigInt & a, const BigInt & b, char sign);
 
@@ -172,10 +202,6 @@ public:
 
 	operator bool();
 	explicit operator std::string ();
-
-	
-
-	
 
 	//static printing options
 	static unsigned inputBase;
