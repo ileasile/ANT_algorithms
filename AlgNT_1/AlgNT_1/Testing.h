@@ -12,6 +12,8 @@
 double getCPUTime();
 
 namespace Testing {
+	typedef BigInt<> BI;
+
 	class Table {
 		std::list<std::list<std::string>> data;
 
@@ -27,7 +29,7 @@ namespace Testing {
 					auto it = row.begin();
 					++it;
 					for (; it != row.end(); ++it) {
-						s << "; " << *it;
+						s << ", " << *it;
 					}
 				}
 				s << "\n";
@@ -99,7 +101,7 @@ namespace Testing {
 			std::string inp;
 			std::string tmp;
 			bool res[10];
-			BigInt A, B;
+			BI A, B;
 			int n;
 
 			for (int j = 0; j < NTESTS; ++j) {
@@ -116,7 +118,7 @@ namespace Testing {
 				{
 				case TestType::IO:
 					f >> inp;
-					A = BigInt(inp);
+					A = BI(inp);
 					tmp = A.to_string();
 					res[0] = tmp == inp;
 					break;
@@ -220,23 +222,23 @@ namespace Testing {
 			for (int k = 1, len = startlen; k <= ntests; len += inclen, ++k) {
 				std::cout << k<< "... ";
 				std::string inp(len, '0');
-				BigInt A, B, C;
+				BI A, B, C;
 				int sh, p = 0;
 				Timer tim;
 				double res;
 				int rlen = len;
 
 				if (type == TestTypeTime::DIV)
-					A = BigInt::get_random(len * 3 / 2);
+					A = BI::get_random(len * 3 / 2);
 				else if (type != TestTypeTime::INPUT) {
-					A = BigInt::get_random(len);
+					A = BI::get_random(len);
 				}
 				if (type == TestTypeTime::ADD ||
 					type == TestTypeTime::SUB ||
 					type == TestTypeTime::MULT ||
 					type == TestTypeTime::DIV ||
 					type == TestTypeTime::COMP)
-					B = BigInt::get_random(len);
+					B = BI::get_random(len);
 				if (type == TestTypeTime::LSHIFT ||
 					type == TestTypeTime::RSHIFT)
 					sh = rand() % 10000;
@@ -249,7 +251,7 @@ namespace Testing {
 					if (rand() % 2)
 						inp = "-" + inp;
 					tim.start();
-					A = BigInt(inp);
+					A = BI(inp);
 					res = tim.get();
 					rlen = (int)A.dig();
 					break;
