@@ -42,7 +42,7 @@ namespace BigIntUtility {
 	__BIGINT_UINT_STRUCT(32);
 	__BIGINT_UINT_STRUCT(64);
 
-#if SIZE == 64
+#if defined(__INT_128_DEFINED)
 	template <> struct uint_t< 128 > { typedef unsigned __int128 type; }
 #endif 
 
@@ -55,12 +55,14 @@ namespace BigIntUtility {
 	__BIGINT_CARRY_FUNCTION(addcarry, 8);
 	__BIGINT_CARRY_FUNCTION(addcarry, 16);
 	__BIGINT_CARRY_FUNCTION(addcarry, 32);
-	__BIGINT_CARRY_FUNCTION(addcarry, 64);
-
 	__BIGINT_CARRY_FUNCTION(subborrow, 8);
 	__BIGINT_CARRY_FUNCTION(subborrow, 16);
 	__BIGINT_CARRY_FUNCTION(subborrow, 32);
+
+#if defined(__INT_128_DEFINED)
+	__BIGINT_CARRY_FUNCTION(addcarry, 64);
 	__BIGINT_CARRY_FUNCTION(subborrow, 64);
+#endif
 
 #else
 	template<typename T>
@@ -137,7 +139,7 @@ public:
 
 	//returns mathematically correct values a/b, a%b
 	template <typename int_type>
-	static std::pair<int_type, int_type> quo_rem(int_type a, int_type b);
+	inline static std::pair<int_type, int_type> quo_rem(int_type a, int_type b);
 
 private:
 	//the only nonstatic members: signum of this BigInt and its digits
@@ -152,9 +154,9 @@ private:
 
 public:
 	// a = |a| + |b|
-	static BigInt<SIZE> & addAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
+	inline static BigInt<SIZE> & addAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
 	// a = |a| - |b|
-	static BigInt<SIZE> & subAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
+	inline static BigInt<SIZE> & subAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
 private:
 	inline static unsigned char addcarry(unsigned char carry, bui a, bui b, bui * res) {
 		return BigIntUtility::addcarry<bui>(carry, a, b, res);
@@ -164,7 +166,7 @@ private:
 	}
 
 	// a = a + sign * b
-	static BigInt<SIZE> & addSign(BigInt<SIZE> & a, const BigInt<SIZE> & b, char sign);
+	inline static BigInt<SIZE> & addSign(BigInt<SIZE> & a, const BigInt<SIZE> & b, char sign);
 
 	//pointer versions of multiplication, addAbs, subAbs. MUST HAVE for optimization purposes
 	static BigInt<SIZE> mult(buicp a1, buicp a2, buicp b1, buicp b2, char res_sign);
@@ -198,8 +200,8 @@ public:
 	BigInt(const std::vector<inttype> & v, char sign = 1);
 
 	//copy a to v (one to one)
-	template<class inttype>
-	friend std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<SIZE> & a);
+	template<int _SIZE, class inttype>
+	friend std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<_SIZE> & a);
 
 	//destructor destructs the data vector
 	~BigInt();
@@ -224,6 +226,7 @@ public:
 	friend std::ostream & operator<<(std::ostream & s, const BigInt<_SIZE> & a);
 	template<int _SIZE>
 	friend std::istream & operator>>(std::istream & s, BigInt<_SIZE> & a);
+
 	std::string to_string(BigInt<SIZE> base = BigInt<SIZE>::outputBase) const;
 
 	//generate random BigInt of d digits
@@ -231,26 +234,26 @@ public:
 
 public:
 	//check if this BigInt is null
-	bool isNull() const;
+	inline bool isNull() const;
 	//check if this BigInt is negative
-	bool isNeg() const;
+	inline bool isNeg() const;
 	//check if this BigInt is positive
 	inline bool isPos() const;
 	//check if this BigInt is odd
-	bool isOdd() const;
+	inline bool isOdd() const;
 	//check if this BigInt is even
-	bool isEven() const;
+	inline bool isEven() const;
 
 	//inverts the sign
-	BigInt<SIZE> & negate();
+	inline BigInt<SIZE> & negate();
 	//sign of this BigInt
-	char signum() const;
+	inline char signum() const;
 	//return the absolute value of this BigInt
-	BigInt<SIZE> abs() const;
+	inline BigInt<SIZE> abs() const;
 	//makes this BigInt positive (sets sign = 1)
-	BigInt<SIZE> & make_positive();
+	inline BigInt<SIZE> & make_positive();
 	//return the number of digits
-	size_t dig() const;
+	inline size_t dig() const;
 
 	// x <=> y: -1 if x < y else (0 if x = y else 1)
 	// |*this| <=> |a|
@@ -258,12 +261,12 @@ public:
 	// *this <=> a
 	char compare(const BigInt<SIZE> & a) const;
 	//comparison operators
-	bool operator< (const BigInt<SIZE> & a) const;
-	bool operator> (const BigInt<SIZE> & a) const;
-	bool operator== (const BigInt<SIZE> & a) const;
-	bool operator!= (const BigInt<SIZE> & a) const;
-	bool operator<= (const BigInt<SIZE> & a) const;
-	bool operator>= (const BigInt<SIZE> & a) const;
+	inline bool operator< (const BigInt<SIZE> & a) const;
+	inline bool operator> (const BigInt<SIZE> & a) const;
+	inline bool operator== (const BigInt<SIZE> & a) const;
+	inline bool operator!= (const BigInt<SIZE> & a) const;
+	inline bool operator<= (const BigInt<SIZE> & a) const;
+	inline bool operator>= (const BigInt<SIZE> & a) const;
 
 	//addition and substraction
 	BigInt<SIZE> operator + (const BigInt<SIZE> & a) const;
@@ -291,8 +294,8 @@ public:
 	BigInt<SIZE> & operator <<= (int n);
 
 	//multiplication operators
-	friend BigInt<SIZE> operator * (bui a, const BigInt<SIZE> & b);
-	friend BigInt<SIZE> operator * (const BigInt<SIZE> & b, bui a);
+	template<int _SIZE> inline friend BigInt<_SIZE> operator * (bui a, const BigInt<_SIZE> & b);
+	template<int _SIZE> inline friend BigInt<_SIZE> operator * (const BigInt<_SIZE> & b, bui a);
 	BigInt<SIZE> operator * (const BigInt<SIZE> & a) const;
 	BigInt<SIZE> & operator *= (const BigInt<SIZE> & a);
 	BigInt<SIZE> & operator *= (const bui a);
@@ -410,8 +413,8 @@ std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b){
 		return std::make_pair(q - 1, r + b);
 }
 
-template<int SIZE,class inttype>
-std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<SIZE> & a) {
+template<int _SIZE,class inttype>
+std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<_SIZE> & a) {
 	static_assert(std::is_integral<inttype>::value, "int_type shoud be integral");
 
 	v.resize(a.dig());
@@ -504,46 +507,38 @@ BigInt<SIZE> & BigInt<SIZE>::operator=(BigInt<SIZE> && a) {
 	return *this;
 }
 
-template<int SIZE>
-BigInt<SIZE>::~BigInt() {
+template<int SIZE> BigInt<SIZE>::~BigInt() {
 	data.clear();
 }
 
-template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator~() const {
+template<int SIZE> BigInt<SIZE> BigInt<SIZE>::operator~() const {
 	return -C_1 - *this;
 }
 
-template<int SIZE>
-bool BigInt<SIZE>::operator!() const {
+template<int SIZE> bool BigInt<SIZE>::operator!() const {
 	return isNull();
 }
 
-template<int SIZE>
-BigInt<SIZE>::operator bool() {
+template<int SIZE> BigInt<SIZE>::operator bool() {
 	return !isNull();
 }
 
-template<int SIZE>
-BigInt<SIZE>::operator std::string() {
+template<int SIZE> BigInt<SIZE>::operator std::string() {
 	return to_string();
 }
 
-template<int _SIZE>
-std::ostream & operator <<(std::ostream & s, const BigInt<_SIZE> & a) {
+template<int _SIZE> std::ostream & operator <<(std::ostream & s, const BigInt<_SIZE> & a) {
 	return s << a.to_string();
 }
 
-template<int _SIZE>
-inline std::istream & operator>>(std::istream & s, BigInt<_SIZE>& a) {
+template<int _SIZE> inline std::istream & operator>>(std::istream & s, BigInt<_SIZE>& a) {
 	std::string str;
 	s >> str;
 	a = BigInt<_SIZE>(str);
 	return s;
 }
 
-template<int SIZE>
-std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const {
+template<int SIZE> std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const {
 	std::vector<std::string> out;
 	std::ostringstream s;
 	if (isNeg() || BigInt<SIZE>::printPlus)
@@ -608,36 +603,30 @@ BigInt<SIZE> BigInt<SIZE>::get_random(unsigned digits) {
 	return res;
 }
 
-template<int SIZE>
-bool BigInt<SIZE>::isNull() const {
+template<int SIZE> bool BigInt<SIZE>::isNull() const {
 	return sgn == 0;
 }
-template<int SIZE>
-bool BigInt<SIZE>::isNeg() const {
+template<int SIZE> bool BigInt<SIZE>::isNeg() const {
 	return sgn == -1;
 }
-template<int SIZE>
-bool BigInt<SIZE>::isPos() const {
+template<int SIZE> bool BigInt<SIZE>::isPos() const {
 	return sgn == 1;
 }
-template<int SIZE>
-bool BigInt<SIZE>::isOdd() const {
+template<int SIZE> bool BigInt<SIZE>::isOdd() const {
 	return !isNull() && ((data[0] & 1) != 0);
 }
-template<int SIZE>
-bool BigInt<SIZE>::isEven() const {
+template<int SIZE> bool BigInt<SIZE>::isEven() const {
 	return isNull() || ((data[0] & 1) == 0);
 }
 
-template<int SIZE>
-char BigInt<SIZE>::signum() const {
+template<int SIZE> char BigInt<SIZE>::signum() const {
 	return sgn;
 }
-template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::abs() const {
+template<int SIZE> BigInt<SIZE> BigInt<SIZE>::abs() const {
 	if (isNeg()) return -*this;
 	else return *this;
 }
+
 template<int SIZE>
 BigInt<SIZE> & BigInt<SIZE>::make_positive()
 {

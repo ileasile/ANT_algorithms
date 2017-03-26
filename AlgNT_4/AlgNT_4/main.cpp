@@ -10,17 +10,17 @@
 #include "../../AlgNT_3/AlgNT_3/Euclid.h"
 #include "SquareMatrix.h"
 
-SquareMatrix<BigInt> build_completion(const std::vector<BigInt> & a) {
+SquareMatrix<Euclid::BI> build_completion(const std::vector<Euclid::BI> & a) {
 	using namespace Euclid;
 	
 	auto n = a.size();
-	SquareMatrix<BigInt> A(n);
+	SquareMatrix<Euclid::BI> A(n);
 	A[0][0] = a[0];
 	if (n == 1) {
 		return A;
 	}
 
-	BigInt d, d1, u, v;
+	Euclid::BI d, d1, u, v;
 	d1 = gcd_ext(a[0], a[1], u, v);
 	A[0][1] = a[1];
 	A[1][1] = u;
@@ -34,7 +34,7 @@ SquareMatrix<BigInt> build_completion(const std::vector<BigInt> & a) {
 		A[0][k_1] = a[k_1];
 		A[k_1][k_1] = u;
 		for (size_t i = 1; i < k_1; ++i) {
-			A[i][k_1] = BigInt(0);
+			A[i][k_1] = Euclid::BI(0);
 		}
 		for (size_t i = 0; i < k_1; ++i) {
 			A[k_1][i] = (a[i] / d1) * v;
@@ -46,11 +46,11 @@ SquareMatrix<BigInt> build_completion(const std::vector<BigInt> & a) {
 	return A;
 }
 
-void gcd(const std::vector<BigInt> & a, BigInt & d) {
+void gcd(const std::vector<Euclid::BI> & a, Euclid::BI & d) {
 	using namespace Euclid;
 
 	if (a.size() == 0) {
-		d = BigInt(0);
+		d = Euclid::BI(0);
 		return;
 	}
 
@@ -65,14 +65,14 @@ void gcd(const std::vector<BigInt> & a, BigInt & d) {
 	}
 }
 
-void gcd_ext(const std::vector<BigInt> & a, std::vector<BigInt> & u, BigInt & d) {
+void gcd_ext(const std::vector<Euclid::BI> & a, std::vector<Euclid::BI> & u, Euclid::BI & d) {
 	using namespace Euclid;
 
-	int n = a.size();
+	auto n = a.size();
 	u.resize(n);
 
 	if (n == 0) {
-		d = BigInt(0);
+		d = Euclid::BI(0);
 		return;
 	}
 
@@ -83,19 +83,19 @@ void gcd_ext(const std::vector<BigInt> & a, std::vector<BigInt> & u, BigInt & d)
 	}
 
 	d = gcd_ext(a[0], a[1], u[0], u[1]);
-	for (int i = 2; i < n; ++i) {
-		BigInt _u;
+	for (size_t i = 2; i < n; ++i) {
+		Euclid::BI _u;
 		d = gcd_ext(d, a[i], _u, u[i]);
-		for (int j = 0; j < i; ++j) {
+		for (size_t j = 0; j < i; ++j) {
 			u[j] *= _u;
 		}
 	}
 }
 
-bool solve_Diophantine_eq(const std::vector<BigInt> & a, const BigInt & b, std::vector<BigInt> & x) {
-	BigInt d;
+bool solve_Diophantine_eq(const std::vector<Euclid::BI> & a, const Euclid::BI & b, std::vector<Euclid::BI> & x) {
+	Euclid::BI d;
 	gcd_ext(a, x, d);
-	BigInt q, r;
+	Euclid::BI q, r;
 
 	try {
 		b.div(d, q, r);
@@ -123,12 +123,12 @@ enum class AllSolsResult{
 
 //may be called only if a[i] != 0 for any i OR if a[i] = 0 for any i.
 AllSolsResult find_all_solutions(
-	const std::vector<BigInt> & a, 
-	const BigInt & b, 
-	std::vector<BigInt> & x,
-	std::vector<std::vector<BigInt>> & coeffs) 
+	const std::vector<Euclid::BI> & a, 
+	const Euclid::BI & b, 
+	std::vector<Euclid::BI> & x,
+	std::vector<std::vector<Euclid::BI>> & coeffs) 
 {
-	BigInt d;
+	Euclid::BI d;
 	gcd(a, d);
 	if (d.isNull()) {
 		if (b.isNull()) {
@@ -139,7 +139,7 @@ AllSolsResult find_all_solutions(
 		}
 	}
 
-	BigInt _b, r;
+	Euclid::BI _b, r;
 	b.div(d, _b, r);
 	if (!r.isNull()) {
 		return AllSolsResult::NO_SOLUTIONS;
@@ -168,7 +168,7 @@ AllSolsResult find_all_solutions(
 	return AllSolsResult::REGULAR_SOLUTION;
 }
 
-void input_task(std::vector<BigInt> & a, BigInt & b, std::istream & in = std::cin) {
+void input_task(std::vector<Euclid::BI> & a, Euclid::BI & b, std::istream & in = std::cin) {
 	int n;
 	in >> n;
 	a.resize(n);
@@ -177,7 +177,7 @@ void input_task(std::vector<BigInt> & a, BigInt & b, std::istream & in = std::ci
 	}
 	in >> b;
 }
-void print_eq(const std::vector<BigInt> & a, const BigInt & b, std::ostream & out, std::vector<size_t> * ind = nullptr) {
+void print_eq(const std::vector<Euclid::BI> & a, const Euclid::BI & b, std::ostream & out, std::vector<size_t> * ind = nullptr) {
 	if (a.size() == 0)
 		out << "0 ";
 
@@ -196,8 +196,8 @@ void print_eq(const std::vector<BigInt> & a, const BigInt & b, std::ostream & ou
 
 	out << "= " << b << "\n\n";
 }
-void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout, bool no_output = false) {
-	int n = a.size();
+void task_all(std::vector<Euclid::BI> & a, Euclid::BI & b, std::ostream & out = std::cout, bool no_output = false) {
+	auto n = a.size();
 	if (!no_output) {
 		out << "There is an equation of " << n << " variables:\n";
 		print_eq(a, b, out);
@@ -208,7 +208,7 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 	std::set<size_t> zero_valued_ind;
 
 	int del = 0;
-	for (int i = 0; i < n; ++i) {
+	for (size_t i = 0; i < n; ++i) {
 		if (a[i].isNull()) {
 			zero_valued_ind.insert(i + 1);
 			++del;
@@ -229,9 +229,9 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 	*/
 
 	//Solve and print the result
-	std::vector<BigInt> x;
-	std::vector<std::vector<BigInt>> cf;
-	BigInt res, d;
+	std::vector<Euclid::BI> x;
+	std::vector<std::vector<Euclid::BI>> cf;
+	Euclid::BI res, d;
 	bool allSolsOK = true;
 	auto  flag = find_all_solutions(a, b, x, cf);
 	if (no_output)
@@ -247,7 +247,7 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 		break;
 	case AllSolsResult::REGULAR_SOLUTION:
 
-		for (int i = 1; i <= n; ++i) {
+		for (size_t i = 1; i <= n; ++i) {
 			out << "x_" << ind[i-1] << " = " << x[i - 1];
 			for (size_t j = 1; j <= cf[i - 1].size(); ++j) {
 				auto cur_cf = cf[i - 1][j - 1];
@@ -260,7 +260,7 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 				else {
 					out << " + ";
 				}
-				if (cur_cf != BigInt(1))
+				if (cur_cf != Euclid::BI(1))
 					out << cur_cf << " ";
 				out << "k_" << j;
 			}
@@ -269,12 +269,12 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 		}
 
 		//check coefficients
-		for (int j = 0; j < n - 1; ++j) {
-			BigInt sum;
-			for (int i = 0; i < n; ++i) {
+		for (size_t j = 0; j < n - 1; ++j) {
+			Euclid::BI sum;
+			for (size_t i = 0; i < n; ++i) {
 				sum += cf[i][j] * a[i];
 			}
-			allSolsOK = allSolsOK && sum == BigInt(0);
+			allSolsOK = allSolsOK && sum == Euclid::BI(0);
 		}
 
 		for (auto i : zero_valued_ind) {
@@ -287,16 +287,16 @@ void task_all(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cou
 		break;
 	}
 }
-void task_part(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::cout, bool no_output = false) {
-	int n = a.size();
+void task_part(std::vector<Euclid::BI> & a, Euclid::BI & b, std::ostream & out = std::cout, bool no_output = false) {
+	auto n = a.size();
 	if (!no_output) {
 		out << "There is an equation of " << n << " variables:\n";
 		print_eq(a, b, out);
 	}
 
 	//Solve and print the result
-	std::vector<BigInt> x;
-	BigInt res, d;
+	std::vector<Euclid::BI> x;
+	Euclid::BI res, d;
 
 	auto  flag = solve_Diophantine_eq(a, b, x);
 	if (no_output)
@@ -307,7 +307,7 @@ void task_part(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::co
 		out << "This equation has no solutions.";
 	}
 	else {
-		for (int i = 1; i <= n; ++i) {
+		for (size_t i = 1; i <= n; ++i) {
 			out << "x_" << i << " = " << x[i - 1] << "\n";
 			res += a[i - 1] * x[i - 1];
 		}
@@ -317,23 +317,23 @@ void task_part(std::vector<BigInt> & a, BigInt & b, std::ostream & out = std::co
 	}
 }
 
-void generate_rand_vector(size_t size, size_t len, std::vector<BigInt> & a, size_t delta_len = 5) {
+void generate_rand_vector(size_t size, size_t len, std::vector<Euclid::BI> & a, size_t delta_len = 5) {
 	a.resize(size);
 	for (size_t i = 0; i < size; ++i) {
-		a[i] = BigInt::get_random(len + rand() % delta_len);
+		a[i] = Euclid::BI::get_random(unsigned(len + rand() % delta_len));
 	}
 }
 
 double getCPUTime();
 
 void make_task(
-	std::function<void(std::vector<BigInt> &, BigInt &, std::ostream &, bool)> task, 
+	std::function<void(std::vector<Euclid::BI> &, Euclid::BI &, std::ostream &, bool)> task, 
 	bool no_output, size_t number_of_tests, size_t len_coef, size_t delta,
 	std::string test_result_file, std::string output_file_prefix) {
 
 	double tim;
-	std::vector<BigInt> a;
-	BigInt b;
+	std::vector<Euclid::BI> a;
+	Euclid::BI b;
 
 	if (number_of_tests != 0) {
 		std::ofstream test_res(test_result_file);
@@ -343,7 +343,7 @@ void make_task(
 			auto thislen = i * len_coef;
 
 			generate_rand_vector(i, thislen, a, delta);
-			b = BigInt::get_random(thislen);
+			b = Euclid::BI::get_random(unsigned(thislen));
 			if (!no_output)
 				f.open("output/"+ output_file_prefix + std::to_string(i) + ".txt");
 			tim = getCPUTime();
@@ -361,9 +361,9 @@ void make_task(
 
 int main() {
 	srand((unsigned)time(NULL));
-	const bool NO_OUTPUT = true;
-	const size_t NTESTS_ALL = 100;
-	const size_t NTESTS_PART = 500;
+	const bool NO_OUTPUT = false;
+	const size_t NTESTS_ALL = 50;
+	const size_t NTESTS_PART = 100;
 	const size_t LEN_COEF_ALL = 2;
 	const size_t LEN_COEF_PART = 5;
 	const size_t DELTA_ALL = 5;
@@ -373,14 +373,14 @@ int main() {
 	make_task(task_part, NO_OUTPUT, NTESTS_PART, LEN_COEF_PART, DELTA_PART, "test/particular_test.csv", "output_particular_");	
 
 	/*
-	std::vector<BigInt> a;
-	BigInt b;
+	std::vector<Euclid::BI> a;
+	Euclid::BI b;
 	std::ifstream fin("input.txt");
 	std::ofstream fout("output.txt");
 
 	// change to std::cout / std::cin if necessary
-	std::vector<BigInt> a;
-	BigInt b;
+	std::vector<Euclid::BI> a;
+	Euclid::BI b;
 	input_task(a, b, fin);
 	task_all(a, b, fout);
 	

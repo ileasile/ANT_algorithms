@@ -15,16 +15,18 @@ namespace Euclid {
 		CLASSIC, BINARY
 	};
 
-	void sort(BigInt & a, BigInt & b);
+	typedef BigInt<> BI;
 
-	BigInt gcd(BigInt a, BigInt b, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
-	BigInt & _gcd1(BigInt & a, BigInt & b);
-	BigInt & _gcd2(BigInt & a, BigInt & b);
+	void sort(BI & a, BI & b);
 
-	BigInt gcd_ext(BigInt a, BigInt b, BigInt & u, BigInt & v, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
-	void _gcd1_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res);
-	void _gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res);
-	void _gcd2_ext_pre(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res);
+	BI gcd(BI a, BI b, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
+	BI & _gcd1(BI & a, BI & b);
+	BI & _gcd2(BI & a, BI & b);
 
-	BigInt lcm(const BigInt & a, const BigInt & b, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
+	BI gcd_ext(BI a, BI b, BI & u, BI & v, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
+	void _gcd1_ext(BI & a, BI & b, BI & u, BI & v, BI & res);
+	void _gcd2_ext(BI & a, BI & b, BI & u, BI & v, BI & res);
+	void _gcd2_ext_pre(BI & a, BI & b, BI & u, BI & v, BI & res);
+
+	BI lcm(const BI & a, const BI & b, GCDCalcMethod method = GCDCalcMethod::CLASSIC);
 }

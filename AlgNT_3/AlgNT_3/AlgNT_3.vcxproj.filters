@@ -21,9 +21,6 @@
     <ClCompile Include="Euclid.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\AlgNT_1\AlgNT_1\BigInt.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\AlgNT_1\AlgNT_1\_get_cpu_time.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>

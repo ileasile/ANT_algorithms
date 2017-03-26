@@ -116,7 +116,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\AlgNT_1\AlgNT_1\BigInt.cpp" />
     <ClCompile Include="..\..\AlgNT_1\AlgNT_1\_get_cpu_time.cpp" />
     <ClCompile Include="Euclid.cpp" />
     <ClCompile Include="main.cpp" />
