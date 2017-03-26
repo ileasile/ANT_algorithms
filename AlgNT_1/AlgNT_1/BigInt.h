@@ -220,13 +220,10 @@ public:
 	static bool printPlus;
 	
 	//input/output operators/functions
-	friend std::ostream & operator<<(std::ostream & s, const BigInt<SIZE> & a);
-	friend std::istream & operator>>(std::istream & s, BigInt<SIZE> & a) {
-		std::string str;
-		s >> str;
-		a = BigInt<SIZE>(str);
-		return s;
-	}
+	template<int _SIZE>
+	friend std::ostream & operator<<(std::ostream & s, const BigInt<_SIZE> & a);
+	template<int _SIZE>
+	friend std::istream & operator>>(std::istream & s, BigInt<_SIZE> & a);
 	std::string to_string(BigInt<SIZE> base = BigInt<SIZE>::outputBase) const;
 
 	//generate random BigInt of d digits
@@ -327,31 +324,32 @@ BigInt<SIZE> ::operator T () {
 	return T(res) * sgn;
 }
 
-template<int SIZE>
-unsigned BigInt<SIZE>::inputBase = 10;
-template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::outputBase = 10;
-template<int SIZE>
-bool BigInt<SIZE>::printPlus = false;
-template<int SIZE>
-const BigInt<SIZE> BigInt<SIZE>::C_1 = BigInt<SIZE>(1, { 1 });
+template<int SIZE> unsigned BigInt<SIZE>::inputBase = 10;
+template<int SIZE> BigInt<SIZE> BigInt<SIZE>::outputBase = 10;
+template<int SIZE> bool BigInt<SIZE>::printPlus = false;
+template<int SIZE> const BigInt<SIZE> BigInt<SIZE>::C_1 = BigInt<SIZE>(1, { 1 });
 
 template<int SIZE>
 template<typename signed_int>
 char BigInt<SIZE>::sign(signed_int val) {
+	static_assert(std::is_signed<signed_int>::value, "signed_int shoud be signed integral");
+
 	return (val > 0) ? 1 : ((val == 0) ? 0 : -1);
 }
 
 template<int SIZE>
 template<typename signed_int>
 signed_int BigInt<SIZE>::abs_num(signed_int val) {
+	static_assert(std::is_signed<signed_int>::value, "signed_int shoud be signed integral");
+
 	return (val > 0) ? val : -val;
 }
 
 template<int SIZE>
 template<typename unsigned_int>
-unsigned_int BigInt<SIZE>::pow_num(unsigned_int val, char n)
-{
+unsigned_int BigInt<SIZE>::pow_num(unsigned_int val, char n){
+	static_assert(std::is_unsigned<unsigned_int>::value, "unsigned_int shoud be unsigned integral");
+
 	auto res = 1;
 	while (n > 0) {
 		res *= val;
@@ -361,8 +359,7 @@ unsigned_int BigInt<SIZE>::pow_num(unsigned_int val, char n)
 }
 
 template<int SIZE>
-typename BigInt<SIZE>::bui BigInt<SIZE>::last_possible_power(bui n, int & last_p)
-{
+typename BigInt<SIZE>::bui BigInt<SIZE>::last_possible_power(bui n, int & last_p){
 	last_p = 0;
 	lui last_pow = 1;
 	while (1) {
@@ -374,6 +371,7 @@ typename BigInt<SIZE>::bui BigInt<SIZE>::last_possible_power(bui n, int & last_p
 		++last_p;
 	}
 }
+
 template<int SIZE>
 unsigned char BigInt<SIZE>::digval(char digit) {
 	if (digit >= '0' && digit <= '9') {
@@ -401,9 +399,9 @@ char BigInt<SIZE>::dig_by_val(bui val) {
 
 template<int SIZE>
 template<typename int_type>
-std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b)
-{
-	///TODO: remake with div()
+std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b){
+	static_assert(std::is_integral<int_type>::value, "int_type shoud be integral");
+
 	int_type q = a / b;
 	int_type r = a % b;
 	if (q >= 0)
@@ -412,8 +410,10 @@ std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b)
 		return std::make_pair(q - 1, r + b);
 }
 
-template<int SIZE, class inttype>
+template<int SIZE,class inttype>
 std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<SIZE> & a) {
+	static_assert(std::is_integral<inttype>::value, "int_type shoud be integral");
+
 	v.resize(a.dig());
 	for (size_t i = 0; i < v.size(); ++i) {
 		v[i] = a[i];
@@ -529,9 +529,17 @@ BigInt<SIZE>::operator std::string() {
 	return to_string();
 }
 
-template<int SIZE>
-std::ostream & operator <<(std::ostream & s, const BigInt<SIZE> & a) {
+template<int _SIZE>
+std::ostream & operator <<(std::ostream & s, const BigInt<_SIZE> & a) {
 	return s << a.to_string();
+}
+
+template<int _SIZE>
+inline std::istream & operator>>(std::istream & s, BigInt<_SIZE>& a) {
+	std::string str;
+	s >> str;
+	a = BigInt<_SIZE>(str);
+	return s;
 }
 
 template<int SIZE>
@@ -693,28 +701,22 @@ char BigInt<SIZE>::compare(const BigInt<SIZE> & a) const {
 		return sgn < a.sgn ? -1 : 1;
 	return ((sgn + a.sgn) >> 1) * compareAbs(a);
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator< (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator< (const BigInt<SIZE> & a) const {
 	return compare(a) == -1;
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator> (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator> (const BigInt<SIZE> & a) const {
 	return compare(a) == 1;
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator== (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator== (const BigInt<SIZE> & a) const {
 	return compare(a) == 0;
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator!= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator!= (const BigInt<SIZE> & a) const {
 	return compare(a) != 0;
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator<= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator<= (const BigInt<SIZE> & a) const {
 	return compare(a) <= 0;
 }
-template<int SIZE>
-bool BigInt<SIZE>::operator>= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt<SIZE>::operator>= (const BigInt<SIZE> & a) const {
 	return compare(a) >= 0;
 }
 

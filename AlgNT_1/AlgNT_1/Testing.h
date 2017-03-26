@@ -12,7 +12,7 @@
 double getCPUTime();
 
 namespace Testing {
-	typedef BigInt<> BI;
+	typedef BigInt<32> BI;
 
 	class Table {
 		std::list<std::list<std::string>> data;
