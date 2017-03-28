@@ -27,6 +27,16 @@ namespace BigIntUtility {
 			{ return _ ## FUNNAME ## _u ## x(carry, a, b, res); }
 #define __BIGINT_EVALUATOR3(FUNNAME, x)  __BIGINT_PASTER3(FUNNAME, x)
 #define __BIGINT_CARRY_FUNCTION(FUNNAME, SIZE)  __BIGINT_EVALUATOR3(FUNNAME, SIZE)
+	
+	//iterative binary logarithm
+	template<typename int_type>
+	unsigned char _log2_iter(int_type n) {
+		unsigned char r = 0;
+		while (n > 1) {
+			++r; n >>= 1;
+		}
+		return r;
+	}
 
 	//constexpr functions to count integer logarithms
 	constexpr unsigned char _log2(uint64_t n) {
@@ -83,23 +93,23 @@ namespace BigIntUtility {
 }
 
 template <int SIZE = 32 >
-class BigInt {
+class BigInt_t {
 	static_assert(
 	SIZE == 8 ||SIZE == 16 ||SIZE == 32 ||SIZE == 64, 
 	"Size of primitive should be 8, 16, 32 or 64");
 public:
 	//types used by this class
-	typedef typename BigIntUtility::uint_t<SIZE>::type bui;
-	typedef typename BigIntUtility::uint_t<SIZE * 2>::type lui;
-	typedef typename std::make_signed<bui>::type		bsi;
-	typedef typename std::make_signed<lui>::type		lsi;
+	typedef typename BigIntUtility::uint_t<SIZE>::type		bui;
+	typedef typename BigIntUtility::uint_t<SIZE * 2>::type	lui;
+	typedef typename std::make_signed<bui>::type			bsi;
+	typedef typename std::make_signed<lui>::type			lsi;
 
 	//service types
-	typedef std::pair<BigInt<SIZE>, BigInt<SIZE>> QuRem;
+	typedef std::pair<BigInt_t<SIZE>, BigInt_t<SIZE>> QuRem;
 	typedef std::vector<bui> intvec;
 	
 	//pointers to array of basic type
-	typedef bui *		buip;
+	typedef bui *			buip;
 	typedef const bui *		buicp;
 	
 	//size of basic type in bits
@@ -114,7 +124,7 @@ public:
 	static const unsigned int KARATSUBA_LIMIT = 55;
 
 	//constant 1
-	static const BigInt<SIZE> C_1;
+	static const BigInt_t<SIZE> C_1;
 
 	//returns the sign of signed number
 	template<typename signed_int>
@@ -142,21 +152,21 @@ public:
 	inline static std::pair<int_type, int_type> quo_rem(int_type a, int_type b);
 
 private:
-	//the only nonstatic members: signum of this BigInt and its digits
+	//the only nonstatic members: signum of this BigInt_t and its digits
 	char sgn;
 	intvec data;
 	
 	//normalize
-	BigInt<SIZE> & normalize();
+	BigInt_t<SIZE> & normalize();
 	//returns pointer to internal vector storage
 	buip get_ptr();
 	buicp get_ptr() const;
 
 public:
 	// a = |a| + |b|
-	inline static BigInt<SIZE> & addAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
+	static BigInt_t<SIZE> & addAbs(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, long long bigShiftB = 0);
 	// a = |a| - |b|
-	inline static BigInt<SIZE> & subAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB = 0);
+	static BigInt_t<SIZE> & subAbs(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, long long bigShiftB = 0);
 private:
 	inline static unsigned char addcarry(unsigned char carry, bui a, bui b, bui * res) {
 		return BigIntUtility::addcarry<bui>(carry, a, b, res);
@@ -166,12 +176,12 @@ private:
 	}
 
 	// a = a + sign * b
-	inline static BigInt<SIZE> & addSign(BigInt<SIZE> & a, const BigInt<SIZE> & b, char sign);
+	static BigInt_t<SIZE> & addSign(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, char sign);
 
 	//pointer versions of multiplication, addAbs, subAbs. MUST HAVE for optimization purposes
-	static BigInt<SIZE> mult(buicp a1, buicp a2, buicp b1, buicp b2, char res_sign);
-	static BigInt<SIZE> & add_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, long long bigShiftB = 0);
-	static BigInt<SIZE> & sub_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, long long bigShiftB = 0);
+	static BigInt_t<SIZE> mult(buicp a1, buicp a2, buicp b1, buicp b2, char res_sign);
+	static BigInt_t<SIZE> & add_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB = 0);
+	static BigInt_t<SIZE> & sub_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB = 0);
 
 	//indexing operators - return references to elements of data
 	inline bui & operator[] (size_t i) {
@@ -183,31 +193,31 @@ private:
 
 public:
 	//different constructors
-	BigInt(char sgn, const intvec & data) :sgn(sgn), data(data) {}
-	BigInt(char sgn, const BigInt<SIZE> & a) :sgn(sgn), data(a.data) {}
-	BigInt(const BigInt<SIZE> & a) : sgn(a.sgn), data(a.data) {}
-	BigInt(BigInt<SIZE> && a) : sgn(a.sgn), data(std::move(a.data)) {}
-	BigInt(unsigned long long val, char sign);
-	BigInt(signed long long val = 0L) : BigInt<SIZE>(abs_num(val), sign(val)) {}
-	BigInt(const std::string & val, unsigned inB = BigInt<SIZE>::inputBase);
+	BigInt_t(char sgn, const intvec & data) :sgn(sgn), data(data) {}
+	BigInt_t(char sgn, const BigInt_t<SIZE> & a) :sgn(sgn), data(a.data) {}
+	BigInt_t(const BigInt_t<SIZE> & a) : sgn(a.sgn), data(a.data) {}
+	BigInt_t(BigInt_t<SIZE> && a) : sgn(a.sgn), data(std::move(a.data)) {}
+	BigInt_t(unsigned long long val, char sign);
+	BigInt_t(signed long long val = 0L) : BigInt_t<SIZE>(abs_num(val), sign(val)) {}
+	BigInt_t(const std::string & val, unsigned inB = BigInt_t<SIZE>::inputBase);
 
 	//assignment operators
-	BigInt<SIZE> & operator=(const BigInt<SIZE> & a);
-	BigInt<SIZE> & operator=(BigInt<SIZE> && a);
+	BigInt_t<SIZE> & operator=(const BigInt_t<SIZE> & a);
+	BigInt_t<SIZE> & operator=(BigInt_t<SIZE> && a);
 
 	//construct by vector of any integer type
 	template <class inttype>
-	BigInt(const std::vector<inttype> & v, char sign = 1);
+	BigInt_t(const std::vector<inttype> & v, char sign = 1);
 
 	//copy a to v (one to one)
 	template<int _SIZE, class inttype>
-	friend std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<_SIZE> & a);
+	friend std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt_t<_SIZE> & a);
 
 	//destructor destructs the data vector
-	~BigInt();
+	~BigInt_t();
 
 	//some unary operations and conversions to primitive types
-	BigInt<SIZE> operator~ () const;
+	BigInt_t<SIZE> operator~ () const;
 	bool operator! () const;
 
 	template<typename T>
@@ -218,102 +228,104 @@ public:
 
 	//static printing options
 	static unsigned inputBase;
-	static BigInt<SIZE> outputBase;
+	static BigInt_t<SIZE> outputBase;
 	static bool printPlus;
 	
 	//input/output operators/functions
 	template<int _SIZE>
-	friend std::ostream & operator<<(std::ostream & s, const BigInt<_SIZE> & a);
+	friend std::ostream & operator<<(std::ostream & s, const BigInt_t<_SIZE> & a);
 	template<int _SIZE>
-	friend std::istream & operator>>(std::istream & s, BigInt<_SIZE> & a);
+	friend std::istream & operator>>(std::istream & s, BigInt_t<_SIZE> & a);
 
-	std::string to_string(BigInt<SIZE> base = BigInt<SIZE>::outputBase) const;
+	std::string to_string(BigInt_t<SIZE> base = BigInt_t<SIZE>::outputBase) const;
 
-	//generate random BigInt of d digits
-	static BigInt<SIZE> get_random(unsigned digits);
+	//generate random BigInt_t of d digits
+	static BigInt_t<SIZE> get_random(unsigned digits);
 
 public:
-	//check if this BigInt is null
+	//check if this BigInt_t is null
 	inline bool isNull() const;
-	//check if this BigInt is negative
+	//check if this BigInt_t is negative
 	inline bool isNeg() const;
-	//check if this BigInt is positive
+	//check if this BigInt_t is positive
 	inline bool isPos() const;
-	//check if this BigInt is odd
+	//check if this BigInt_t is odd
 	inline bool isOdd() const;
-	//check if this BigInt is even
+	//check if this BigInt_t is even
 	inline bool isEven() const;
 
 	//inverts the sign
-	inline BigInt<SIZE> & negate();
-	//sign of this BigInt
+	inline BigInt_t<SIZE> & negate();
+	//sign of this BigInt_t
 	inline char signum() const;
-	//return the absolute value of this BigInt
-	inline BigInt<SIZE> abs() const;
-	//makes this BigInt positive (sets sign = 1)
-	inline BigInt<SIZE> & make_positive();
+	//return the absolute value of this BigInt_t
+	BigInt_t<SIZE> abs() const;
+	//makes this BigInt_t positive (sets sign = 1)
+	inline BigInt_t<SIZE> & make_positive();
 	//return the number of digits
 	inline size_t dig() const;
 
 	// x <=> y: -1 if x < y else (0 if x = y else 1)
 	// |*this| <=> |a|
-	char compareAbs(const BigInt<SIZE> & a, long long bigShiftA = 0) const;
+	char compareAbs(const BigInt_t<SIZE> & a, long long bigShiftA = 0) const;
 	// *this <=> a
-	char compare(const BigInt<SIZE> & a) const;
+	char compare(const BigInt_t<SIZE> & a) const;
 	//comparison operators
-	inline bool operator< (const BigInt<SIZE> & a) const;
-	inline bool operator> (const BigInt<SIZE> & a) const;
-	inline bool operator== (const BigInt<SIZE> & a) const;
-	inline bool operator!= (const BigInt<SIZE> & a) const;
-	inline bool operator<= (const BigInt<SIZE> & a) const;
-	inline bool operator>= (const BigInt<SIZE> & a) const;
+	bool operator< (const BigInt_t<SIZE> & a) const;
+	bool operator> (const BigInt_t<SIZE> & a) const;
+	bool operator== (const BigInt_t<SIZE> & a) const;
+	bool operator!= (const BigInt_t<SIZE> & a) const;
+	bool operator<= (const BigInt_t<SIZE> & a) const;
+	bool operator>= (const BigInt_t<SIZE> & a) const;
 
 	//addition and substraction
-	BigInt<SIZE> operator + (const BigInt<SIZE> & a) const;
-	BigInt<SIZE> operator - (const BigInt<SIZE> & a) const;
-	BigInt<SIZE> operator - () const;
-	BigInt<SIZE> & operator += (const BigInt<SIZE> & a);
-	BigInt<SIZE> & operator -= (const BigInt<SIZE> & a);
-	BigInt<SIZE> & operator ++ ();
-	BigInt<SIZE> operator ++ (int);
-	BigInt<SIZE> & operator -- ();
-	BigInt<SIZE> operator -- (int);
+	BigInt_t<SIZE> operator + (const BigInt_t<SIZE> & a) const;
+	BigInt_t<SIZE> operator - (const BigInt_t<SIZE> & a) const;
+	BigInt_t<SIZE> operator - () const;
+	BigInt_t<SIZE> & operator += (const BigInt_t<SIZE> & a);
+	BigInt_t<SIZE> & operator -= (const BigInt_t<SIZE> & a);
+	BigInt_t<SIZE> & operator ++ ();
+	BigInt_t<SIZE> operator ++ (int);
+	BigInt_t<SIZE> & operator -- ();
+	BigInt_t<SIZE> operator -- (int);
 
 	//shift operators
 	// *this * 2^(SOI*n)
-	BigInt<SIZE> & big_shift(long long n);
+	BigInt_t<SIZE> & big_shift(long long n);
 	// *this / 2^n
-	BigInt<SIZE> operator >> (long long n) const;
-	BigInt<SIZE> & operator >>= (long long n);
-	BigInt<SIZE> operator >> (int n) const;
-	BigInt<SIZE> & operator >>= (int n);
+	BigInt_t<SIZE> operator >> (long long n) const;
+	BigInt_t<SIZE> & operator >>= (long long n);
+	BigInt_t<SIZE> operator >> (int n) const;
+	BigInt_t<SIZE> & operator >>= (int n);
 	// *this * 2^n
-	BigInt<SIZE> operator << (long long n) const;
-	BigInt<SIZE> & operator <<= (long long n);
-	BigInt<SIZE> operator << (int n) const;
-	BigInt<SIZE> & operator <<= (int n);
+	BigInt_t<SIZE> operator << (long long n) const;
+	BigInt_t<SIZE> & operator <<= (long long n);
+	BigInt_t<SIZE> operator << (int n) const;
+	BigInt_t<SIZE> & operator <<= (int n);
 
 	//multiplication operators
-	template<int _SIZE> inline friend BigInt<_SIZE> operator * (bui a, const BigInt<_SIZE> & b);
-	template<int _SIZE> inline friend BigInt<_SIZE> operator * (const BigInt<_SIZE> & b, bui a);
-	BigInt<SIZE> operator * (const BigInt<SIZE> & a) const;
-	BigInt<SIZE> & operator *= (const BigInt<SIZE> & a);
-	BigInt<SIZE> & operator *= (const bui a);
+	template<int _SIZE> friend BigInt_t<_SIZE> operator * (bui a, const BigInt_t<_SIZE> & b);
+	template<int _SIZE> friend BigInt_t<_SIZE> operator * (const BigInt_t<_SIZE> & b, bui a);
+	BigInt_t<SIZE> operator * (const BigInt_t<SIZE> & a) const;
+	BigInt_t<SIZE> & operator *= (const BigInt_t<SIZE> & a);
+	BigInt_t<SIZE> & operator *= (const bui a);
 
 	//division and remainder operators
-	void div(const BigInt<SIZE> & d, BigInt<SIZE> & Q, BigInt<SIZE> & R) const;
-	static QuRem divmod(const BigInt<SIZE> & a, const BigInt<SIZE> & b);
-	BigInt<SIZE> operator / (const BigInt<SIZE> & d) const;
-	BigInt<SIZE> operator % (const BigInt<SIZE> & d) const;
-	BigInt<SIZE> & operator/=(const BigInt<SIZE> & a);
-	BigInt<SIZE> & operator%=(const BigInt<SIZE> & a);
+	void div(const BigInt_t<SIZE> & d, BigInt_t<SIZE> & Q, BigInt_t<SIZE> & R) const;
+	static QuRem divmod(const BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b);
+	BigInt_t<SIZE> operator / (const BigInt_t<SIZE> & d) const;
+	BigInt_t<SIZE> operator % (const BigInt_t<SIZE> & d) const;
+	BigInt_t<SIZE> & operator/=(const BigInt_t<SIZE> & a);
+	BigInt_t<SIZE> & operator%=(const BigInt_t<SIZE> & a);
 
 };
 
+typedef BigInt_t<> BigInt;
+
 template<int SIZE> 
 template <typename T>
-BigInt<SIZE> ::operator T () {
-	static_assert(sizeof(T) % sizeof(BigInt<SIZE>::bui) == 0 && std::is_integral<T>::value, 
+BigInt_t<SIZE> ::operator T () {
+	static_assert(sizeof(T) % sizeof(BigInt_t<SIZE>::bui) == 0 && std::is_integral<T>::value, 
 		"BigInt may be converted only to integer type which size is multiplicand of sizeof(bui)");
 
 	const int iters = sizeof(T) / sizeof(bui);
@@ -327,14 +339,14 @@ BigInt<SIZE> ::operator T () {
 	return T(res) * sgn;
 }
 
-template<int SIZE> unsigned BigInt<SIZE>::inputBase = 10;
-template<int SIZE> BigInt<SIZE> BigInt<SIZE>::outputBase = 10;
-template<int SIZE> bool BigInt<SIZE>::printPlus = false;
-template<int SIZE> const BigInt<SIZE> BigInt<SIZE>::C_1 = BigInt<SIZE>(1, { 1 });
+template<int SIZE> unsigned BigInt_t<SIZE>::inputBase = 10;
+template<int SIZE> BigInt_t<SIZE> BigInt_t<SIZE>::outputBase = 10;
+template<int SIZE> bool BigInt_t<SIZE>::printPlus = false;
+template<int SIZE> const BigInt_t<SIZE> BigInt_t<SIZE>::C_1 = BigInt_t<SIZE>(1, { 1 });
 
 template<int SIZE>
 template<typename signed_int>
-char BigInt<SIZE>::sign(signed_int val) {
+char BigInt_t<SIZE>::sign(signed_int val) {
 	static_assert(std::is_signed<signed_int>::value, "signed_int shoud be signed integral");
 
 	return (val > 0) ? 1 : ((val == 0) ? 0 : -1);
@@ -342,7 +354,7 @@ char BigInt<SIZE>::sign(signed_int val) {
 
 template<int SIZE>
 template<typename signed_int>
-signed_int BigInt<SIZE>::abs_num(signed_int val) {
+signed_int BigInt_t<SIZE>::abs_num(signed_int val) {
 	static_assert(std::is_signed<signed_int>::value, "signed_int shoud be signed integral");
 
 	return (val > 0) ? val : -val;
@@ -350,7 +362,7 @@ signed_int BigInt<SIZE>::abs_num(signed_int val) {
 
 template<int SIZE>
 template<typename unsigned_int>
-unsigned_int BigInt<SIZE>::pow_num(unsigned_int val, char n){
+unsigned_int BigInt_t<SIZE>::pow_num(unsigned_int val, char n){
 	static_assert(std::is_unsigned<unsigned_int>::value, "unsigned_int shoud be unsigned integral");
 
 	auto res = 1;
@@ -362,7 +374,7 @@ unsigned_int BigInt<SIZE>::pow_num(unsigned_int val, char n){
 }
 
 template<int SIZE>
-typename BigInt<SIZE>::bui BigInt<SIZE>::last_possible_power(bui n, int & last_p){
+typename BigInt_t<SIZE>::bui BigInt_t<SIZE>::last_possible_power(bui n, int & last_p){
 	last_p = 0;
 	lui last_pow = 1;
 	while (1) {
@@ -376,7 +388,7 @@ typename BigInt<SIZE>::bui BigInt<SIZE>::last_possible_power(bui n, int & last_p
 }
 
 template<int SIZE>
-unsigned char BigInt<SIZE>::digval(char digit) {
+unsigned char BigInt_t<SIZE>::digval(char digit) {
 	if (digit >= '0' && digit <= '9') {
 		return digit - '0';
 	}
@@ -390,7 +402,7 @@ unsigned char BigInt<SIZE>::digval(char digit) {
 }
 
 template<int SIZE>
-char BigInt<SIZE>::dig_by_val(bui val) {
+char BigInt_t<SIZE>::dig_by_val(bui val) {
 	if (val >= 0 && val <= 9) {
 		return '0' + val;
 	}
@@ -402,7 +414,7 @@ char BigInt<SIZE>::dig_by_val(bui val) {
 
 template<int SIZE>
 template<typename int_type>
-std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b){
+std::pair<int_type, int_type> BigInt_t<SIZE>::quo_rem(int_type a, int_type b){
 	static_assert(std::is_integral<int_type>::value, "int_type shoud be integral");
 
 	int_type q = a / b;
@@ -414,7 +426,7 @@ std::pair<int_type, int_type> BigInt<SIZE>::quo_rem(int_type a, int_type b){
 }
 
 template<int _SIZE,class inttype>
-std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<_SIZE> & a) {
+std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt_t<_SIZE> & a) {
 	static_assert(std::is_integral<inttype>::value, "int_type shoud be integral");
 
 	v.resize(a.dig());
@@ -425,7 +437,7 @@ std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt<_SIZE> & a) {
 }
 
 template<int SIZE>
-BigInt<SIZE>::BigInt(const std::string & val, unsigned inB) {
+BigInt_t<SIZE>::BigInt_t(const std::string & val, unsigned inB) {
 	if (val.empty()) {
 		sgn = 0;
 		return;
@@ -468,7 +480,7 @@ BigInt<SIZE>::BigInt(const std::string & val, unsigned inB) {
 }
 
 template<int SIZE>
-BigInt<SIZE>::BigInt(unsigned long long val, char sign) {
+BigInt_t<SIZE>::BigInt_t(unsigned long long val, char sign) {
 	sgn = val == 0 ? 0 : sign;
 
 	while (val > 0) {
@@ -479,7 +491,7 @@ BigInt<SIZE>::BigInt(unsigned long long val, char sign) {
 
 template<int SIZE>
 template<class inttype>
-BigInt<SIZE>::BigInt(const std::vector<inttype>& v, char sign) {
+BigInt_t<SIZE>::BigInt_t(const std::vector<inttype>& v, char sign) {
 	data.resize(v.size());
 	auto itv = v.cbegin();
 	for (auto it = data.begin(); it != data.end(); ++it, ++itv) {
@@ -490,7 +502,7 @@ BigInt<SIZE>::BigInt(const std::vector<inttype>& v, char sign) {
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator=(const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator=(const BigInt_t<SIZE> & a) {
 	if (this != &a) {
 		sgn = a.sgn;
 		data = a.data;
@@ -499,7 +511,7 @@ BigInt<SIZE> & BigInt<SIZE>::operator=(const BigInt<SIZE> & a) {
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator=(BigInt<SIZE> && a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator=(BigInt_t<SIZE> && a) {
 	if (this != &a) {
 		sgn = a.sgn;
 		data = std::move(a.data);
@@ -507,51 +519,51 @@ BigInt<SIZE> & BigInt<SIZE>::operator=(BigInt<SIZE> && a) {
 	return *this;
 }
 
-template<int SIZE> BigInt<SIZE>::~BigInt() {
+template<int SIZE> BigInt_t<SIZE>::~BigInt_t() {
 	data.clear();
 }
 
-template<int SIZE> BigInt<SIZE> BigInt<SIZE>::operator~() const {
+template<int SIZE> BigInt_t<SIZE> BigInt_t<SIZE>::operator~() const {
 	return -C_1 - *this;
 }
 
-template<int SIZE> bool BigInt<SIZE>::operator!() const {
+template<int SIZE> bool BigInt_t<SIZE>::operator!() const {
 	return isNull();
 }
 
-template<int SIZE> BigInt<SIZE>::operator bool() {
+template<int SIZE> BigInt_t<SIZE>::operator bool() {
 	return !isNull();
 }
 
-template<int SIZE> BigInt<SIZE>::operator std::string() {
+template<int SIZE> BigInt_t<SIZE>::operator std::string() {
 	return to_string();
 }
 
-template<int _SIZE> std::ostream & operator <<(std::ostream & s, const BigInt<_SIZE> & a) {
+template<int _SIZE> std::ostream & operator <<(std::ostream & s, const BigInt_t<_SIZE> & a) {
 	return s << a.to_string();
 }
 
-template<int _SIZE> inline std::istream & operator>>(std::istream & s, BigInt<_SIZE>& a) {
+template<int _SIZE> std::istream & operator>>(std::istream & s, BigInt_t<_SIZE>& a) {
 	std::string str;
 	s >> str;
-	a = BigInt<_SIZE>(str);
+	a = BigInt_t<_SIZE>(str);
 	return s;
 }
 
-template<int SIZE> std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const {
+template<int SIZE> std::string BigInt_t<SIZE>::to_string(BigInt_t<SIZE> base) const {
 	std::vector<std::string> out;
 	std::ostringstream s;
-	if (isNeg() || BigInt<SIZE>::printPlus)
+	if (isNeg() || BigInt_t<SIZE>::printPlus)
 		s << (isNeg() ? '-' : '+');
 	if (isNull()) {
 		out.push_back("0");
 	}
 	else {
-		BigInt<SIZE> A = abs(), R, Q;
+		BigInt_t<SIZE> A = abs(), R, Q;
 
 		int char_written;
 		bui base_int = base[0];
-		BigInt<SIZE> PowerB = last_possible_power(base_int, char_written);
+		BigInt_t<SIZE> PowerB = last_possible_power(base_int, char_written);
 		std::string str(char_written, '0');
 
 		while (A.isPos()) {
@@ -562,7 +574,7 @@ template<int SIZE> std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const 
 			if (A.isNull()) {
 				str = "";
 				while (r0) {
-					str = BigInt<SIZE>::dig_by_val(r0 % base_int) + str;
+					str = BigInt_t<SIZE>::dig_by_val(r0 % base_int) + str;
 					r0 /= base_int;
 				}
 			}
@@ -570,7 +582,7 @@ template<int SIZE> std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const 
 				std::fill(str.begin(), str.end(), '0');
 				int i = char_written;
 				while (r0) {
-					str[--i] = BigInt<SIZE>::dig_by_val(r0 % base_int);
+					str[--i] = BigInt_t<SIZE>::dig_by_val(r0 % base_int);
 					r0 /= base_int;
 				}
 			}
@@ -585,10 +597,10 @@ template<int SIZE> std::string BigInt<SIZE>::to_string(BigInt<SIZE> base) const 
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::get_random(unsigned digits) {
+BigInt_t<SIZE> BigInt_t<SIZE>::get_random(unsigned digits) {
 	static std::mt19937_64 gen((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
 
-	BigInt<SIZE> res;
+	BigInt_t<SIZE> res;
 	if (digits) {
 		res.data.resize(digits);
 		size_t k = res.data.size();
@@ -603,32 +615,32 @@ BigInt<SIZE> BigInt<SIZE>::get_random(unsigned digits) {
 	return res;
 }
 
-template<int SIZE> bool BigInt<SIZE>::isNull() const {
+template<int SIZE> bool BigInt_t<SIZE>::isNull() const {
 	return sgn == 0;
 }
-template<int SIZE> bool BigInt<SIZE>::isNeg() const {
+template<int SIZE> bool BigInt_t<SIZE>::isNeg() const {
 	return sgn == -1;
 }
-template<int SIZE> bool BigInt<SIZE>::isPos() const {
+template<int SIZE> bool BigInt_t<SIZE>::isPos() const {
 	return sgn == 1;
 }
-template<int SIZE> bool BigInt<SIZE>::isOdd() const {
+template<int SIZE> bool BigInt_t<SIZE>::isOdd() const {
 	return !isNull() && ((data[0] & 1) != 0);
 }
-template<int SIZE> bool BigInt<SIZE>::isEven() const {
+template<int SIZE> bool BigInt_t<SIZE>::isEven() const {
 	return isNull() || ((data[0] & 1) == 0);
 }
 
-template<int SIZE> char BigInt<SIZE>::signum() const {
+template<int SIZE> char BigInt_t<SIZE>::signum() const {
 	return sgn;
 }
-template<int SIZE> BigInt<SIZE> BigInt<SIZE>::abs() const {
+template<int SIZE> BigInt_t<SIZE> BigInt_t<SIZE>::abs() const {
 	if (isNeg()) return -*this;
 	else return *this;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::make_positive()
+BigInt_t<SIZE> & BigInt_t<SIZE>::make_positive()
 {
 	if (*this) {
 		sgn = 1;
@@ -636,12 +648,12 @@ BigInt<SIZE> & BigInt<SIZE>::make_positive()
 	return *this;
 }
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::negate() {
+BigInt_t<SIZE> & BigInt_t<SIZE>::negate() {
 	sgn = -sgn;
 	return *this;
 }
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::normalize() {
+BigInt_t<SIZE> & BigInt_t<SIZE>::normalize() {
 	int i = (int)data.size() - 1;
 	for (; i >= 0; --i) {
 		if (data[i] != 0)
@@ -653,21 +665,21 @@ BigInt<SIZE> & BigInt<SIZE>::normalize() {
 	return *this;
 }
 template<int SIZE>
-typename BigInt<SIZE>::buip BigInt<SIZE>::get_ptr(){
+typename BigInt_t<SIZE>::buip BigInt_t<SIZE>::get_ptr(){
 	return data.data();
 }
 template<int SIZE>
-typename BigInt<SIZE>::buicp BigInt<SIZE>::get_ptr() const
+typename BigInt_t<SIZE>::buicp BigInt_t<SIZE>::get_ptr() const
 {
 	return data.data();
 }
 template<int SIZE>
-size_t BigInt<SIZE>::dig() const {
+size_t BigInt_t<SIZE>::dig() const {
 	return data.size();
 }
 
 template<int SIZE>
-char BigInt<SIZE>::compareAbs(const BigInt<SIZE> & a, long long bigShiftA) const {
+char BigInt_t<SIZE>::compareAbs(const BigInt_t<SIZE> & a, long long bigShiftA) const {
 	if (data.size() != a.data.size() + bigShiftA) {
 		return data.size() < (a.data.size() + bigShiftA) ? -1 : 1;
 	}
@@ -685,42 +697,42 @@ char BigInt<SIZE>::compareAbs(const BigInt<SIZE> & a, long long bigShiftA) const
 }
 
 template<int SIZE>
-char BigInt<SIZE>::compare(const BigInt<SIZE> & a) const {
+char BigInt_t<SIZE>::compare(const BigInt_t<SIZE> & a) const {
 	if (sgn != a.sgn)
 		return sgn < a.sgn ? -1 : 1;
 	return ((sgn + a.sgn) >> 1) * compareAbs(a);
 }
-template<int SIZE> bool BigInt<SIZE>::operator< (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator< (const BigInt_t<SIZE> & a) const {
 	return compare(a) == -1;
 }
-template<int SIZE> bool BigInt<SIZE>::operator> (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator> (const BigInt_t<SIZE> & a) const {
 	return compare(a) == 1;
 }
-template<int SIZE> bool BigInt<SIZE>::operator== (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator== (const BigInt_t<SIZE> & a) const {
 	return compare(a) == 0;
 }
-template<int SIZE> bool BigInt<SIZE>::operator!= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator!= (const BigInt_t<SIZE> & a) const {
 	return compare(a) != 0;
 }
-template<int SIZE> bool BigInt<SIZE>::operator<= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator<= (const BigInt_t<SIZE> & a) const {
 	return compare(a) <= 0;
 }
-template<int SIZE> bool BigInt<SIZE>::operator>= (const BigInt<SIZE> & a) const {
+template<int SIZE> bool BigInt_t<SIZE>::operator>= (const BigInt_t<SIZE> & a) const {
 	return compare(a) >= 0;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::addAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::addAbs(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, long long bigShiftB) {
 	return add_abs_ptr(a, b.data.data(), b.data.data() + b.data.size(), bigShiftB);
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::subAbs(BigInt<SIZE> & a, const BigInt<SIZE> & b, long long bigShiftB) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::subAbs(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, long long bigShiftB) {
 	return sub_abs_ptr(a, b.data.data(), b.data.data() + b.data.size(), bigShiftB);
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::addSign(BigInt<SIZE> & a, const BigInt<SIZE> & b, char sign) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::addSign(BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b, char sign) {
 	if (a.sgn * b.sgn * sign >= 0) {
 		char sgn;
 		if (a.sgn + sign*b.sgn == 0)
@@ -739,12 +751,12 @@ BigInt<SIZE> & BigInt<SIZE>::addSign(BigInt<SIZE> & a, const BigInt<SIZE> & b, c
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign){
+BigInt_t<SIZE> BigInt_t<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign){
 	size_t k = size_t(ae - a), l = size_t(be - b);
 	if (!k || !l)
-		return BigInt<SIZE>();
+		return BigInt_t<SIZE>();
 
-	BigInt<SIZE> res;
+	BigInt_t<SIZE> res;
 	auto ke = k + (k & 1), le = l + (l & 1);
 
 	if (std::min(k, l) < KARATSUBA_LIMIT) {
@@ -777,7 +789,7 @@ BigInt<SIZE> BigInt<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_s
 			auto m = std::max(ke, le);
 			auto m2 = m >> 1;
 
-			BigInt<SIZE> A0, B0;
+			BigInt_t<SIZE> A0, B0;
 			A0.data.resize(m2);
 			B0.data.resize(m2);
 			memcpy(A0.data.data(), a, m2 * sizeof(bui));
@@ -785,8 +797,8 @@ BigInt<SIZE> BigInt<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_s
 			A0.sgn = B0.sgn = 1;
 
 			res = mult(a, a + m2, b, b + m2, 1);
-			BigInt<SIZE> mid = add_abs_ptr(A0, a + m2, ae) * add_abs_ptr(B0, b + m2, be);
-			BigInt<SIZE> A1B1 = mult(a + m2, ae, b + m2, be, 1);
+			BigInt_t<SIZE> mid = add_abs_ptr(A0, a + m2, ae) * add_abs_ptr(B0, b + m2, be);
+			BigInt_t<SIZE> A1B1 = mult(a + m2, ae, b + m2, be, 1);
 			subAbs(subAbs(mid, res), A1B1);
 
 			addAbs(res, mid, m2);
@@ -799,7 +811,7 @@ BigInt<SIZE> BigInt<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_s
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::add_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, long long bigShiftB)
+BigInt_t<SIZE> & BigInt_t<SIZE>::add_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB)
 {
 	if (be - b == 0) {
 		if (a.isNeg())
@@ -832,7 +844,7 @@ BigInt<SIZE> & BigInt<SIZE>::add_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, lo
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::sub_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, long long bigShiftB){
+BigInt_t<SIZE> & BigInt_t<SIZE>::sub_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB){
 	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
 	auto ita = a.data.begin() + sh;
 	auto de = b + std::min(be - b, a.data.end() - ita);
@@ -872,60 +884,60 @@ BigInt<SIZE> & BigInt<SIZE>::sub_abs_ptr(BigInt<SIZE> & a, buicp b, buicp be, lo
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator + (const BigInt<SIZE> & a) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator + (const BigInt_t<SIZE> & a) const {
 	auto r = *this;
 	return r += a;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator - (const BigInt<SIZE> & a) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator - (const BigInt_t<SIZE> & a) const {
 	auto r = *this;
 	return r -= a;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator - () const {
-	BigInt<SIZE> a(*this);
+BigInt_t<SIZE> BigInt_t<SIZE>::operator - () const {
+	BigInt_t<SIZE> a(*this);
 	a.negate();
 	return a;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator += (const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator += (const BigInt_t<SIZE> & a) {
 	return addSign(*this, a, 1);
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator -= (const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator -= (const BigInt_t<SIZE> & a) {
 	return addSign(*this, a, -1);
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator ++ () {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator ++ () {
 	return addSign(*this, 1, 1);
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator ++ (int) {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator ++ (int) {
 	auto a = *this;
 	++*this;
 	return a;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator -- () {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator -- () {
 	return addSign(*this, 1, -1);
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator -- (int) {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator -- (int) {
 	auto a = *this;
 	--*this;
 	return a;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::big_shift(long long n) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::big_shift(long long n) {
 	if (n > 0)
 		data.insert(data.begin(), (size_t)n, 0);
 	else if (n < 0)
@@ -934,19 +946,19 @@ BigInt<SIZE> & BigInt<SIZE>::big_shift(long long n) {
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator >> (long long n) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator >> (long long n) const {
 	auto a(*this);
 	return a >>= n;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator << (long long n) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator << (long long n) const {
 	auto a(*this);
 	return a <<= n;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator >>= (long long n) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator >>= (long long n) {
 	auto skip = n >> LOG_SOI;
 	int k = n & SOI_1;
 	int soi_k = SOI - k;
@@ -973,7 +985,7 @@ BigInt<SIZE> & BigInt<SIZE>::operator >>= (long long n) {
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator <<= (long long n) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator <<= (long long n) {
 	if (isNull()) return *this;
 
 	auto skip = n >> LOG_SOI;
@@ -997,60 +1009,60 @@ BigInt<SIZE> & BigInt<SIZE>::operator <<= (long long n) {
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator >> (int n) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator >> (int n) const {
 	return *this >> (long long)n;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator >>= (int n) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator >>= (int n) {
 	return *this >>= (long long)n;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator << (int n) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator << (int n) const {
 	return *this << (long long)n;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator <<= (int n) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator <<= (int n) {
 	return *this <<= (long long)n;
 }
 
 template<int SIZE>
-BigInt<SIZE> operator * (typename BigInt<SIZE>::bui a, const BigInt<SIZE> & b) {
-	BigInt<SIZE> res(b);
+BigInt_t<SIZE> operator * (typename BigInt_t<SIZE>::bui a, const BigInt_t<SIZE> & b) {
+	BigInt_t<SIZE> res(b);
 	res *= a;
 	return res;
 }
 
 template<int SIZE>
-BigInt<SIZE> operator * (const BigInt<SIZE> & b, typename BigInt<SIZE>::bui a) {
+BigInt_t<SIZE> operator * (const BigInt_t<SIZE> & b, typename BigInt_t<SIZE>::bui a) {
 	return a*b;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator * (const BigInt<SIZE> & a) const {
+BigInt_t<SIZE> BigInt_t<SIZE>::operator * (const BigInt_t<SIZE> & a) const {
 
 	return mult(get_ptr(), get_ptr() + dig(), a.get_ptr(), a.get_ptr() + a.dig(), sgn*a.sgn).normalize();
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator *= (const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator *= (const BigInt_t<SIZE> & a) {
 	return *this = *this * a;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator *= (const bui a)
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator *= (const bui a)
 {
 	if (a == 0 || isNull())
-		return *this = BigInt<SIZE>();
+		return *this = BigInt_t<SIZE>();
 
 	lui carry = 0, A = (lui) a;
 
 	for (auto & el : data) {
 		lui r = carry + el * A;
-		carry = r >> BigInt<SIZE>::SOI;
-		el = (bui)(r & BigInt<SIZE>::C_MAX_DIG);
+		carry = r >> BigInt_t<SIZE>::SOI;
+		el = (bui)(r & BigInt_t<SIZE>::C_MAX_DIG);
 	}
 
 	if (carry > 0) {
@@ -1060,7 +1072,7 @@ BigInt<SIZE> & BigInt<SIZE>::operator *= (const bui a)
 }
 
 template<int SIZE>
-void BigInt<SIZE>::div(const BigInt<SIZE> & d, BigInt<SIZE> & Q, BigInt<SIZE> & R) const
+void BigInt_t<SIZE>::div(const BigInt_t<SIZE> & d, BigInt_t<SIZE> & Q, BigInt_t<SIZE> & R) const
 {
 	if (d.isNull()) {
 		throw BigIntDivideByZeroException();
@@ -1075,7 +1087,7 @@ void BigInt<SIZE>::div(const BigInt<SIZE> & d, BigInt<SIZE> & Q, BigInt<SIZE> & 
 	auto B = d.abs();
 
 	if (R.compareAbs(B) != -1) {
-		int bits_shift = SOI - BigIntUtility::_log2(B.data.back()) - 1;
+		int bits_shift = SOI - BigIntUtility::_log2_iter(B.data.back()) - 1;
 		R <<= bits_shift;
 		B <<= bits_shift;
 		lui eldest_dig = B.data.back();
@@ -1084,7 +1096,7 @@ void BigInt<SIZE>::div(const BigInt<SIZE> & d, BigInt<SIZE> & Q, BigInt<SIZE> & 
 		Q.data.resize(k - l + 1);
 		R.data.reserve(k + 1);
 
-		BigInt<SIZE> BS;
+		BigInt_t<SIZE> BS;
 		BS.data.reserve(l + 1);
 
 		for (int i = k - l; i >= 0; --i) {
@@ -1128,33 +1140,33 @@ void BigInt<SIZE>::div(const BigInt<SIZE> & d, BigInt<SIZE> & Q, BigInt<SIZE> & 
 }
 
 template<int SIZE>
-typename BigInt<SIZE>::QuRem BigInt<SIZE>::divmod(const BigInt<SIZE> & a, const BigInt<SIZE> & b)
+typename BigInt_t<SIZE>::QuRem BigInt_t<SIZE>::divmod(const BigInt_t<SIZE> & a, const BigInt_t<SIZE> & b)
 {
-	BigInt<SIZE> Q, R;
+	BigInt_t<SIZE> Q, R;
 	a.div(b, Q, R);
 	return QuRem(Q, R);
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator / (const BigInt<SIZE> & d) const {
-	BigInt<SIZE> Q, R;
+BigInt_t<SIZE> BigInt_t<SIZE>::operator / (const BigInt_t<SIZE> & d) const {
+	BigInt_t<SIZE> Q, R;
 	div(d, Q, R);
 	return Q;
 }
 
 template<int SIZE>
-BigInt<SIZE> BigInt<SIZE>::operator % (const BigInt<SIZE> & d) const {
-	BigInt<SIZE> Q, R;
+BigInt_t<SIZE> BigInt_t<SIZE>::operator % (const BigInt_t<SIZE> & d) const {
+	BigInt_t<SIZE> Q, R;
 	div(d, Q, R);
 	return R;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator /= (const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator /= (const BigInt_t<SIZE> & a) {
 	return *this = *this / a;
 }
 
 template<int SIZE>
-BigInt<SIZE> & BigInt<SIZE>::operator %= (const BigInt<SIZE> & a) {
+BigInt_t<SIZE> & BigInt_t<SIZE>::operator %= (const BigInt_t<SIZE> & a) {
 	return *this = *this % a;
 }

@@ -15,7 +15,7 @@ namespace Euclid {
 		CLASSIC, BINARY
 	};
 
-	typedef BigInt<> BI;
+	typedef BigInt_t<> BI;
 
 	void sort(BI & a, BI & b);
 
