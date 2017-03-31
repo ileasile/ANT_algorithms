@@ -1,11 +1,11 @@
 #include "Euclid.h"
 
-void Euclid::sort(BigInt & a, BigInt & b) {
+void Euclid::sort(BI & a, BI & b) {
 	if (a.compareAbs(b) == -1)
 		std::swap(a, b);
 }
 
-BigInt Euclid::gcd(BigInt a, BigInt  b, GCDCalcMethod method) {
+Euclid::BI Euclid::gcd(BI a, BI  b, GCDCalcMethod method) {
 	switch (method)
 	{
 	case GCDCalcMethod::CLASSIC:
@@ -18,8 +18,8 @@ BigInt Euclid::gcd(BigInt a, BigInt  b, GCDCalcMethod method) {
 
 }
 
-BigInt & Euclid::_gcd1(BigInt & a, BigInt & b) {
-	BigInt r, d;
+Euclid::BI & Euclid::_gcd1(BI & a, BI & b) {
+	BI r, d;
 	while (b) {
 		a.div(b, d, r);
 		a = b;
@@ -29,7 +29,7 @@ BigInt & Euclid::_gcd1(BigInt & a, BigInt & b) {
 	return a.make_positive();
 }
 
-BigInt & Euclid::_gcd2(BigInt & a, BigInt & b) {
+Euclid::BI & Euclid::_gcd2(BI & a, BI & b) {
 	if (b.isNull())
 		return a.make_positive();
 	if (a.isNull())
@@ -48,7 +48,7 @@ BigInt & Euclid::_gcd2(BigInt & a, BigInt & b) {
 		while (b.isEven())
 			b >>= 1;
 		sort(b, a);
-		BigInt::subAbs(b, a);
+		BI::subAbs(b, a);
 	} while (b);
 
 	a <<= sh;
@@ -56,9 +56,9 @@ BigInt & Euclid::_gcd2(BigInt & a, BigInt & b) {
 	return a.make_positive();
 }
 
-BigInt Euclid::gcd_ext(BigInt a, BigInt b, BigInt & u, BigInt & v, GCDCalcMethod method)
+Euclid::BI Euclid::gcd_ext(BI a, BI b, BI & u, BI & v, GCDCalcMethod method)
 {
-	BigInt res;
+	BI res;
 	char as, bs;
 	switch (method)
 	{
@@ -83,8 +83,8 @@ BigInt Euclid::gcd_ext(BigInt a, BigInt b, BigInt & u, BigInt & v, GCDCalcMethod
 	return res;
 }
 
-void Euclid::_gcd1_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res){
-	BigInt r, q, u0, v0, ut, vt;
+void Euclid::_gcd1_ext(BI & a, BI & b, BI & u, BI & v, BI & res){
+	BI r, q, u0, v0, ut, vt;
 	v = u0 = 0;
 	u = v0 = 1;
 	
@@ -106,11 +106,11 @@ void Euclid::_gcd1_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 	return;
 }
 
-void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res) {
+void Euclid::_gcd2_ext(BI & a, BI & b, BI & u, BI & v, BI & res) {
 	//a is even, b is odd
 	if (a.isEven()) {
 		a >>= 1;
-		BigInt _a = a, _b = b;
+		BI _a = a, _b = b;
 
 		_gcd2_ext(a, b, u, v, res);
 		if (u.isEven()) {
@@ -141,8 +141,8 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 
 		//a and b are odd, a>b
 		else if (cmp > 0) {
-			BigInt _b = b, _a = a;
-			BigInt::subAbs(a, b) >>= 1;
+			BI _b = b, _a = a;
+			BI::subAbs(a, b) >>= 1;
 			_gcd2_ext(a, b, u, v, res);
 			if (u.isEven()) {
 				u >>= 1;
@@ -157,8 +157,8 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 
 		//a and b are odd, a<b
 		else {
-			BigInt _b = b, _a = a;
-			BigInt::subAbs(b, a) >>= 1;
+			BI _b = b, _a = a;
+			BI::subAbs(b, a) >>= 1;
 			_gcd2_ext(b, a, v, u, res);
 			if (v.isEven()) {
 				v >>= 1;
@@ -173,7 +173,7 @@ void Euclid::_gcd2_ext(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & 
 	}
 }
 
-void Euclid::_gcd2_ext_pre(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigInt & res){
+void Euclid::_gcd2_ext_pre(BI & a, BI & b, BI & u, BI & v, BI & res){
 	if (b.isNull()) {
 		v = 0;
 		u = 1;
@@ -202,7 +202,7 @@ void Euclid::_gcd2_ext_pre(BigInt & a, BigInt & b, BigInt & u, BigInt & v, BigIn
 	res <<= sh;
 }
 
-BigInt Euclid::lcm(const BigInt & a, const BigInt & b, GCDCalcMethod method)
+Euclid::BI Euclid::lcm(const BI & a, const BI & b, GCDCalcMethod method)
 {
 	return (a.isNull() && b.isNull()) ? 0 :((a / gcd(a, b, method)) * b).abs();
 }

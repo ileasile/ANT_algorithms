@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <cstdlib>
+#include <cstring>
 #include <limits>
 #include <utility>
 #include <sstream>
@@ -13,7 +14,11 @@
 #include <random>
 #include <type_traits>
 #include <functional>
-#include <intrin.h>
+
+#if defined(_MSC_VER)
+	#include <intrin.h>
+#endif
+
 #include "BigIntException.h"
 
 namespace BigIntUtility {
@@ -27,7 +32,7 @@ namespace BigIntUtility {
 			{ return _ ## FUNNAME ## _u ## x(carry, a, b, res); }
 #define __BIGINT_EVALUATOR3(FUNNAME, x)  __BIGINT_PASTER3(FUNNAME, x)
 #define __BIGINT_CARRY_FUNCTION(FUNNAME, SIZE)  __BIGINT_EVALUATOR3(FUNNAME, SIZE)
-	
+
 	//iterative binary logarithm
 	template<typename int_type>
 	unsigned char _log2_iter(int_type n) {
@@ -52,9 +57,9 @@ namespace BigIntUtility {
 	__BIGINT_UINT_STRUCT(32);
 	__BIGINT_UINT_STRUCT(64);
 
-#if defined(__INT_128_DEFINED)
+#if defined(__SIZEOF_INT128__)
 	template <> struct uint_t< 128 > { typedef unsigned __int128 type; }
-#endif 
+#endif
 
 #if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
 	template<typename T>
@@ -69,7 +74,7 @@ namespace BigIntUtility {
 	__BIGINT_CARRY_FUNCTION(subborrow, 16);
 	__BIGINT_CARRY_FUNCTION(subborrow, 32);
 
-#if defined(__INT_128_DEFINED)
+#if defined(__SIZEOF_INT128__)
 	__BIGINT_CARRY_FUNCTION(addcarry, 64);
 	__BIGINT_CARRY_FUNCTION(subborrow, 64);
 #endif
@@ -95,8 +100,8 @@ namespace BigIntUtility {
 template <int SIZE = 32 >
 class BigInt_t {
 	static_assert(
-	SIZE == 8 ||SIZE == 16 ||SIZE == 32 ||SIZE == 64, 
-	"Size of primitive should be 8, 16, 32 or 64");
+		SIZE == 8 || SIZE == 16 || SIZE == 32 || SIZE == 64,
+		"Size of primitive should be 8, 16, 32 or 64");
 public:
 	//types used by this class
 	typedef typename BigIntUtility::uint_t<SIZE>::type		bui;
@@ -107,11 +112,11 @@ public:
 	//service types
 	typedef std::pair<BigInt_t<SIZE>, BigInt_t<SIZE>> QuRem;
 	typedef std::vector<bui> intvec;
-	
+
 	//pointers to array of basic type
 	typedef bui *			buip;
 	typedef const bui *		buicp;
-	
+
 	//size of basic type in bits
 	static const unsigned char SOI = sizeof(bui) * 8;
 	static const unsigned char SOI_1 = SOI - 1;
@@ -140,7 +145,7 @@ public:
 
 	//returns n^p : n^p <=C_MAX_DIG, n^(p+1) > C_MAX_DIG
 	//sets last_p = p
-	static bui last_possible_power(bui n, int & last_p);
+	static bui last_possible_power(bui n, unsigned & last_p);
 
 	//returns value of digit
 	static unsigned char digval(char digit);
@@ -155,7 +160,7 @@ private:
 	//the only nonstatic members: signum of this BigInt_t and its digits
 	char sgn;
 	intvec data;
-	
+
 	//normalize
 	BigInt_t<SIZE> & normalize();
 	//returns pointer to internal vector storage
@@ -224,13 +229,13 @@ public:
 	explicit operator T ();
 
 	operator bool();
-	explicit operator std::string ();
+	explicit operator std::string();
 
 	//static printing options
 	static unsigned inputBase;
 	static BigInt_t<SIZE> outputBase;
 	static bool printPlus;
-	
+
 	//input/output operators/functions
 	template<int _SIZE>
 	friend std::ostream & operator<<(std::ostream & s, const BigInt_t<_SIZE> & a);
@@ -322,15 +327,15 @@ public:
 
 typedef BigInt_t<> BigInt;
 
-template<int SIZE> 
+template<int SIZE>
 template <typename T>
 BigInt_t<SIZE> ::operator T () {
-	static_assert(sizeof(T) % sizeof(BigInt_t<SIZE>::bui) == 0 && std::is_integral<T>::value, 
+	static_assert(sizeof(T) % sizeof(BigInt_t<SIZE>::bui) == 0 && std::is_integral<T>::value,
 		"BigInt may be converted only to integer type which size is multiplicand of sizeof(bui)");
 
 	const int iters = sizeof(T) / sizeof(bui);
-	std::make_unsigned<T>::type res = 0;
-	for (size_t i = iters; i --> 0;) {
+	typename std::make_unsigned<T>::type res = 0;
+	for (size_t i = iters; i--> 0;) {
 		if (i < dig()) {
 			res <<= SOI;
 			res += data[i];
@@ -362,7 +367,7 @@ signed_int BigInt_t<SIZE>::abs_num(signed_int val) {
 
 template<int SIZE>
 template<typename unsigned_int>
-unsigned_int BigInt_t<SIZE>::pow_num(unsigned_int val, char n){
+unsigned_int BigInt_t<SIZE>::pow_num(unsigned_int val, char n) {
 	static_assert(std::is_unsigned<unsigned_int>::value, "unsigned_int shoud be unsigned integral");
 
 	auto res = 1;
@@ -374,7 +379,7 @@ unsigned_int BigInt_t<SIZE>::pow_num(unsigned_int val, char n){
 }
 
 template<int SIZE>
-typename BigInt_t<SIZE>::bui BigInt_t<SIZE>::last_possible_power(bui n, int & last_p){
+typename BigInt_t<SIZE>::bui BigInt_t<SIZE>::last_possible_power(bui n, unsigned & last_p) {
 	last_p = 0;
 	lui last_pow = 1;
 	while (1) {
@@ -414,7 +419,7 @@ char BigInt_t<SIZE>::dig_by_val(bui val) {
 
 template<int SIZE>
 template<typename int_type>
-std::pair<int_type, int_type> BigInt_t<SIZE>::quo_rem(int_type a, int_type b){
+std::pair<int_type, int_type> BigInt_t<SIZE>::quo_rem(int_type a, int_type b) {
 	static_assert(std::is_integral<int_type>::value, "int_type shoud be integral");
 
 	int_type q = a / b;
@@ -425,7 +430,7 @@ std::pair<int_type, int_type> BigInt_t<SIZE>::quo_rem(int_type a, int_type b){
 		return std::make_pair(q - 1, r + b);
 }
 
-template<int _SIZE,class inttype>
+template<int _SIZE, class inttype>
 std::vector<inttype> & copy(std::vector<inttype> & v, const BigInt_t<_SIZE> & a) {
 	static_assert(std::is_integral<inttype>::value, "int_type shoud be integral");
 
@@ -443,7 +448,7 @@ BigInt_t<SIZE>::BigInt_t(const std::string & val, unsigned inB) {
 		return;
 	}
 
-	int MAX_CHAR_READ;
+	unsigned MAX_CHAR_READ;
 	auto last_pow = last_possible_power(inB, MAX_CHAR_READ);
 
 	char res_sgn = 1;
@@ -561,7 +566,7 @@ template<int SIZE> std::string BigInt_t<SIZE>::to_string(BigInt_t<SIZE> base) co
 	else {
 		BigInt_t<SIZE> A = abs(), R, Q;
 
-		int char_written;
+		unsigned char_written;
 		bui base_int = base[0];
 		BigInt_t<SIZE> PowerB = last_possible_power(base_int, char_written);
 		std::string str(char_written, '0');
@@ -665,7 +670,7 @@ BigInt_t<SIZE> & BigInt_t<SIZE>::normalize() {
 	return *this;
 }
 template<int SIZE>
-typename BigInt_t<SIZE>::buip BigInt_t<SIZE>::get_ptr(){
+typename BigInt_t<SIZE>::buip BigInt_t<SIZE>::get_ptr() {
 	return data.data();
 }
 template<int SIZE>
@@ -751,7 +756,7 @@ BigInt_t<SIZE> & BigInt_t<SIZE>::addSign(BigInt_t<SIZE> & a, const BigInt_t<SIZE
 }
 
 template<int SIZE>
-BigInt_t<SIZE> BigInt_t<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign){
+BigInt_t<SIZE> BigInt_t<SIZE>::mult(buicp a, buicp ae, buicp b, buicp be, char res_sign) {
 	size_t k = size_t(ae - a), l = size_t(be - b);
 	if (!k || !l)
 		return BigInt_t<SIZE>();
@@ -844,7 +849,7 @@ BigInt_t<SIZE> & BigInt_t<SIZE>::add_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp 
 }
 
 template<int SIZE>
-BigInt_t<SIZE> & BigInt_t<SIZE>::sub_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB){
+BigInt_t<SIZE> & BigInt_t<SIZE>::sub_abs_ptr(BigInt_t<SIZE> & a, buicp b, buicp be, long long bigShiftB) {
 	auto sh = (size_t)std::min(bigShiftB, (long long)(a.data.size()));
 	auto ita = a.data.begin() + sh;
 	auto de = b + std::min(be - b, a.data.end() - ita);
@@ -1057,7 +1062,7 @@ BigInt_t<SIZE> & BigInt_t<SIZE>::operator *= (const bui a)
 	if (a == 0 || isNull())
 		return *this = BigInt_t<SIZE>();
 
-	lui carry = 0, A = (lui) a;
+	lui carry = 0, A = (lui)a;
 
 	for (auto & el : data) {
 		lui r = carry + el * A;
@@ -1170,3 +1175,4 @@ template<int SIZE>
 BigInt_t<SIZE> & BigInt_t<SIZE>::operator %= (const BigInt_t<SIZE> & a) {
 	return *this = *this % a;
 }
+
