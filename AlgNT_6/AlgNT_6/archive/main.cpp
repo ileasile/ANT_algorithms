@@ -6,8 +6,10 @@
 
 void eratosthenes(std::set<BigInt> & s, const BigInt & n) {
 	s.clear();
-	for (BigInt i = 2; i <= n; ++i) 
-		s.insert(i);
+	if (n < 2)	return;
+	auto hint = s.insert(2).first;
+	for (BigInt i = 3; i <= n; ++i) 
+		hint = s.insert(hint, i);
 	
 	for (BigInt i = 2; i * i <= n; i = * s.upper_bound(i)) 
 		for (BigInt j = i * i; j <= n; j += i) 
