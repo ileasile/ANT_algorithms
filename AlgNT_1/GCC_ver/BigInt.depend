@@ -2,6 +2,8 @@
 1490912164 source:c:\google disc\Программы мехмат ЮФУ\other\bigint\main.cpp
 	"BigInt.h"
 
+1488221529 
+
 1490940927 c:\google disc\Программы мехмат ЮФУ\other\bigint\bigint.h
 	<iostream>
 	<vector>
@@ -19,8 +21,12 @@
 	<functional>
 	"BigIntException.h"
 
+1490940927 eption.h"
+
 1490912011 c:\google disc\Программы мехмат ЮФУ\other\bigint\bigintexception.h
 	<exception>
+
+1490912011 >
 
 1488221529 source:c:\google disc\alg_nt\algnt_1\algnt_1\_get_cpu_time.cpp
 	<Windows.h>
@@ -28,4 +34,47 @@
 	<sys/resource.h>
 	<sys/times.h>
 	<time.h>
+
+1491257256 source:/home/ileasile/Common/Alg_NT_repo/AlgNT_1/AlgNT_1/_get_cpu_time.cpp
+	<Windows.h>
+	<unistd.h>
+	<sys/resource.h>
+	<sys/times.h>
+	<time.h>
+
+1491258668 source:/home/ileasile/Common/Alg_NT_repo/AlgNT_1/AlgNT_1/main.cpp
+	"BigInt.h"
+	"Testing.h"
+
+1491257256 /home/ileasile/Common/Alg_NT_repo/AlgNT_1/AlgNT_1/BigInt.h
+	<iostream>
+	<vector>
+	<string>
+	<cstdlib>
+	<cstring>
+	<limits>
+	<utility>
+	<sstream>
+	<algorithm>
+	<tuple>
+	<chrono>
+	<random>
+	<type_traits>
+	<functional>
+	<intrin.h>
+	"BigIntException.h"
+
+1491257256 /home/ileasile/Common/Alg_NT_repo/AlgNT_1/AlgNT_1/BigIntException.h
+	<exception>
+
+1491258087 /home/ileasile/Common/Alg_NT_repo/AlgNT_1/AlgNT_1/Testing.h
+	<list>
+	<string>
+	<iostream>
+	<fstream>
+	<map>
+	<set>
+	<exception>
+	<ctime>
+	"BigInt.h"
 

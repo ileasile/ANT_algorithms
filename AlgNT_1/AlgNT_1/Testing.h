@@ -90,7 +90,7 @@ namespace Testing {
 			std::string type_s;
 			f >> type_s;
 			auto it = test_type.find(type_s);
-			if (it == test_type.end()) 
+			if (it == test_type.end())
 				throw NoSuchTestTypeTestingException();
 
 			t.add_row({ type_s });
@@ -177,7 +177,7 @@ namespace Testing {
 
 		return t;
 	}
-	
+
 	class Timer {
 		double st;
 	public:
@@ -194,16 +194,16 @@ namespace Testing {
 		INPUT, OUTPUT, UNARY, ADD, SUB, RSHIFT, LSHIFT, COMP, MULT, DIV
 	};
 	std::map<TestTypeTime, std::tuple<std::string, int, int, int>> type_to_s = {
-		{ TestTypeTime::INPUT,		{"input",		5000, 20,	25} },
-		{ TestTypeTime::OUTPUT,		{"output",		500, 20,	8 } },
-		{ TestTypeTime::UNARY,		{"unary",		500, 1,		100000 } },
-		{ TestTypeTime::ADD,		{"add",			500, 100,	100000 } },
-		{ TestTypeTime::SUB,		{"sub",			500, 100,	100000 } },
-		{ TestTypeTime::RSHIFT,		{"right_sh",	500, 100,	50000 } },
-		{ TestTypeTime::LSHIFT,		{"left_sh",		500, 100,	50000 } },
-		{ TestTypeTime::COMP,		{"comparison",	500, 100,	200000 } },
-		{ TestTypeTime::MULT,		{"mult",		500, 100,	50 } },
-		{ TestTypeTime::DIV,		{"div",			500, 100,	50 } }
+		{ TestTypeTime::INPUT,		std::make_tuple("input",		5000, 20,	25) },
+		{ TestTypeTime::OUTPUT,		std::make_tuple("output",		500, 20,	8 ) },
+		{ TestTypeTime::UNARY,		std::make_tuple("unary",		500, 1,		100000 ) },
+		{ TestTypeTime::ADD,		std::make_tuple("add",			500, 100,	100000 ) },
+		{ TestTypeTime::SUB,		std::make_tuple("sub",			500, 100,	100000 ) },
+		{ TestTypeTime::RSHIFT,		std::make_tuple("right_sh",	500, 100,	50000 ) },
+		{ TestTypeTime::LSHIFT,		std::make_tuple("left_sh",		500, 100,	50000 ) },
+		{ TestTypeTime::COMP,		std::make_tuple("comparison",	500, 100,	200000 ) },
+		{ TestTypeTime::MULT,		std::make_tuple("mult",		500, 100,	50 ) },
+		{ TestTypeTime::DIV,		std::make_tuple("div",			500, 100,	50 ) }
 	};
 
 	void test_time(std::string prefix, std::set<TestTypeTime> set_of_types) {
@@ -218,7 +218,7 @@ namespace Testing {
 			auto startlen = std::get<2>(type_p.second);
 			auto inclen = std::get<3>(type_p.second);
 			Table t;
-			
+
 			for (int k = 1, len = startlen; k <= ntests; len += inclen, ++k) {
 				std::cout << k<< "... ";
 				std::string inp(len, '0');
@@ -303,7 +303,7 @@ namespace Testing {
 				default:
 					break;
 				}
-				
+
 				p += C.isNeg();
 				t.add_row({std::to_string(k), std::to_string(rlen), std::to_string(res)});
 			}
