@@ -257,3 +257,5 @@ output_*.txt
 .idlerc
 **/include/NTL/**
 **/NTL/**
+*.a
+*.exe

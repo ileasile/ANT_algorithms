@@ -61,7 +61,7 @@ namespace BigIntUtility {
 	template <> struct uint_t< 128 > { typedef unsigned __int128 type; }
 #endif
 
-#if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
+#if defined(_MSC_VER) && defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
 	template<typename T>
 	inline static unsigned char addcarry(unsigned char carry, T a, T b, T * res);
 	template<typename T>
@@ -74,10 +74,11 @@ namespace BigIntUtility {
 	__BIGINT_CARRY_FUNCTION(subborrow, 16);
 	__BIGINT_CARRY_FUNCTION(subborrow, 32);
 
-#if defined(__SIZEOF_INT128__)
-	__BIGINT_CARRY_FUNCTION(addcarry, 64);
-	__BIGINT_CARRY_FUNCTION(subborrow, 64);
-#endif
+#elif defined(__GNUG__)
+	#if defined(__SIZEOF_INT128__)
+		__BIGINT_CARRY_FUNCTION(addcarry, 64);
+		__BIGINT_CARRY_FUNCTION(subborrow, 64);
+	#endif
 
 #else
 	template<typename T>
