@@ -54,12 +54,12 @@ int main() {
 //	system("pause");
 
 
-//	Testing::Table t;
-//	std::ofstream of;
-//	t = Testing::test_correctness("Tests/tests.txt", 300);
-//	of.open("Tests/correctness_res.csv");
-//	of << t;
-//	of.close();
+	Testing::Table t;
+	std::ofstream of;
+	t = Testing::test_correctness("Tests/tests.txt", 300);
+	of.open("Tests/correctness_res.csv");
+	of << t;
+	of.close();
 
 //    BigInt_t t("4445345346234665652454542643625757472486482564");
 //	std::cout << bool(t) <<"\n";

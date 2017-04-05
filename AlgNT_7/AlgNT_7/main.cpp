@@ -93,7 +93,7 @@ void gf2x_test() {
 	cout << "===== GF2X test =====\n";
 
 	GF2X p1, p2;
-	string p1s("[1 0 1 0 0 0 1 1]");
+	string p1s("[1 0 1 1 0 0 1 1]");
 	string p2s("[1 0 0 0 1]");
 	stringstream io;
 
