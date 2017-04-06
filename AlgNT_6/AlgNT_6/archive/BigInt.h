@@ -1123,25 +1123,25 @@ void BigInt_t<SIZE>::div(const BigInt_t<SIZE> & d, BigInt_t<SIZE> & Q, BigInt_t<
 
 		BigInt_t<SIZE> BS;
 		BS.data.reserve(l + 1);
-
+		
 		for (int i = k - l; i >= 0; --i) {
 			R.data.resize(i + l + 1, 0);
-			lui temp = (((lui)(R[i + l]) << SOI) | R[i + l - 1]) / eldest_dig;
-			temp = (temp > C_MAX_DIG ? C_MAX_DIG : temp);
+			lui temp = ( (lui(R[i + l]) << SOI) | R[i + l - 1] ) / eldest_dig;
+			bui temp_b = bui(temp > C_MAX_DIG ? C_MAX_DIG : temp);
 			R.normalize();
 
 			BS.data = B.data;
-			BS.sgn = B.sgn;
-			BS *= (bui)temp;
+			BS.sgn = 1;
+			BS *= temp_b;
 			subAbs(R, BS, i);
 
 			while (R.isNeg())
 			{
 				subAbs(R, B, i);
 				R.negate();
-				--temp;
+				--temp_b;
 			}
-			Q[i] = (bui)temp;
+			Q[i] = temp_b;
 		}
 		R >>= bits_shift;
 		//R.data.shrink_to_fit();
