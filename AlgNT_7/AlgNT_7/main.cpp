@@ -12,8 +12,9 @@ using namespace std;
 
 void zz_px_test() {
 	cout << "===== ZZ_PX test =====\n";
-
-	ZZ_p::init(ZZ(17));
+	ZZ modulus(17);
+	cout << "Modulus is " << modulus<< "\n";
+	ZZ_p::init(modulus);
 	ZZ_pX p1, p2;
 	string p1s("[2323 2323 12 30 33 0 2 11]");
 	string p2s("[13 15 8 177 31]");
@@ -49,6 +50,7 @@ void zz_px_test() {
 	//derivative of P1
 	ZZ_pX dp1;
 	diff(dp1, p1);
+	dp1.normalize();
 	std::cout << "d(P1)/dx = " << dp1 << "\n";
 
 	//P1(a)
@@ -78,15 +80,22 @@ void zz_px_test() {
 		BuildIrred(p, 6);
 		MulMod(res, res, p, F);
 	}
-	cout << "Result of multiplication: " << res << "\n";
+	cout << "Result of multiplication of several polynomials: " << res << "\n";
 
 	//modular compozition
 	ZZ_pX p;
 	BuildIrred(p, 9);
-	// x = g(h) mod f; deg(h) < n
+	cout << "P = " << p << "\n";
 	auto x = CompMod(p1, p2, p);
-	cout << x << "\n";
+	cout << "P1(P2) mod P: " << x << "\n";
 	
+}
+
+GF2 eval(const GF2X & p, GF2 a) {
+	if (IsZero(a))
+		return GF2(0);
+
+	return GF2(weight(p)%2);
 }
 
 void gf2x_test() {
@@ -127,8 +136,16 @@ void gf2x_test() {
 	//derivative of P1
 	GF2X dp1;
 	diff(dp1, p1);
+	dp1.normalize();
 	std::cout << "d(P1)/dx = " << dp1 << "\n";
 	
+	//P1(a), P2(a)
+	GF2 a(1);
+	auto b = eval(p1, a);
+	std::cout << "P1(" << a << ") = " << b << "\n";
+	b = eval(p2, a);
+	std::cout << "P2(" << a << ") = " << b << "\n";
+
 	//factorization of P1.
 	//first make P1 monic
 	auto ec = p1[deg(p1)];
@@ -142,15 +159,30 @@ void gf2x_test() {
 	cout << "Is P1 irreducible: " << IterIrredTest(p1) << "\n";
 	cout << "Is P2 irreducible: " << IterIrredTest(p2) << "\n";
 	
+	//using GF2XModulus. Using p1_monic as modulus
+	GF2XModulus F(p1_monic);
+	auto res = GF2X(1);
+	int num_poly = 10;
+	for (int i = 0; i < num_poly; ++i) {
+		GF2X p;
+		BuildIrred(p, 6);
+		MulMod(res, res, p, F);
+	}
+	cout << "Result of multiplication of several polynomials: " << res << "\n";
+
 	//modular compozition
 	GF2X p;
 	BuildIrred(p, 9);
-	// x = g(h) mod f; deg(h) < n
+	cout << "P = " << p << "\n";
 	auto x = CompMod(p1, p2, p);
-	cout << x << "\n";
+	cout <<"P1(P2) mod P: " << x << "\n";
 }
 
 int main() {
+	cout << "\nOriginal notation is used:\n";
+	cout << "P = [a0 a1 a2 ... an] means P(x) = a0 + a1*x + a2*x^2 + ... + an*x^n\n";
+	cout << "[[P1 n1] [P2 n2] ... [Pk nk]] means P1^n1 * P2^n2 * ... * Pk^nk\n\n";
+
 	zz_px_test();
 	cout << "\n";
 	gf2x_test();
