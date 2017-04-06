@@ -27,11 +27,25 @@ namespace BigIntUtility {
 #define __BIGINT_EVALUATOR2(x)  __BIGINT_PASTER2(x)
 #define __BIGINT_UINT_STRUCT(SIZE)  __BIGINT_EVALUATOR2(SIZE)
 
-#define __BIGINT_PASTER3(FUNNAME, x) template<> inline static unsigned char FUNNAME <uint ## x ##_t>\
+#define __BIGINT_PASTER3(FUNNAME, x) template<> inline unsigned char FUNNAME <uint ## x ##_t>\
 			(unsigned char carry, uint ## x ## _t a, uint ## x ## _t b, uint ## x ## _t * res) \
 			{ return _ ## FUNNAME ## _u ## x(carry, a, b, res); }
 #define __BIGINT_EVALUATOR3(FUNNAME, x)  __BIGINT_PASTER3(FUNNAME, x)
 #define __BIGINT_CARRY_FUNCTION(FUNNAME, SIZE)  __BIGINT_EVALUATOR3(FUNNAME, SIZE)
+
+#define __BIGINT_PASTER4(FUNNAME, x) template<> inline unsigned char FUNNAME <uint ## x ##_t>\
+			(unsigned char carry, uint ## x ## _t a, uint ## x ## _t b, uint ## x ## _t * res) \
+			{ bool c = __builtin_add_overflow(a, b, res);\
+              return c | __builtin_add_overflow(*res, carry, res);}
+#define __BIGINT_EVALUATOR4(FUNNAME, x)  __BIGINT_PASTER4(FUNNAME, x)
+#define __BIGINT_CARRY_FUNCTION_GCC_ADD(FUNNAME, SIZE)  __BIGINT_EVALUATOR4(FUNNAME, SIZE)
+
+#define __BIGINT_PASTER5(FUNNAME, x) template<> inline unsigned char FUNNAME <uint ## x ##_t>\
+			(unsigned char carry, uint ## x ## _t a, uint ## x ## _t b, uint ## x ## _t * res) \
+			{ bool c = __builtin_sub_overflow(a, b, res);\
+              return c | __builtin_sub_overflow(*res, carry, res);}
+#define __BIGINT_EVALUATOR5(FUNNAME, x)  __BIGINT_PASTER5(FUNNAME, x)
+#define __BIGINT_CARRY_FUNCTION_GCC_SUB(FUNNAME, SIZE)  __BIGINT_EVALUATOR5(FUNNAME, SIZE)
 
 	//iterative binary logarithm
 	template<typename int_type>
@@ -61,12 +75,11 @@ namespace BigIntUtility {
 	template <> struct uint_t< 128 > { typedef unsigned __int128 type; }
 #endif
 
-#if defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
-	template<typename T>
-	inline static unsigned char addcarry(unsigned char carry, T a, T b, T * res);
-	template<typename T>
-	inline static unsigned char subborrow(unsigned char borrow, T a, T b, T * res);
-
+    template<typename T>
+    inline unsigned char addcarry(unsigned char carry, T a, T b, T * res);
+    template<typename T>
+    inline unsigned char subborrow(unsigned char borrow, T a, T b, T * res);
+#if defined(_MSC_VER) && defined(__MACHINEX86_X64) && __MACHINEX86_X64 == __MACHINE
 	__BIGINT_CARRY_FUNCTION(addcarry, 8);
 	__BIGINT_CARRY_FUNCTION(addcarry, 16);
 	__BIGINT_CARRY_FUNCTION(addcarry, 32);
@@ -74,21 +87,28 @@ namespace BigIntUtility {
 	__BIGINT_CARRY_FUNCTION(subborrow, 16);
 	__BIGINT_CARRY_FUNCTION(subborrow, 32);
 
-#if defined(__SIZEOF_INT128__)
-	__BIGINT_CARRY_FUNCTION(addcarry, 64);
-	__BIGINT_CARRY_FUNCTION(subborrow, 64);
-#endif
+//#elif defined(__GNUG__)
+//    __BIGINT_CARRY_FUNCTION_GCC_ADD(addcarry, 8);
+//    __BIGINT_CARRY_FUNCTION_GCC_SUB(subborrow, 8);
+//    __BIGINT_CARRY_FUNCTION_GCC_ADD(addcarry, 16);
+//    __BIGINT_CARRY_FUNCTION_GCC_SUB(subborrow, 16);
+//    __BIGINT_CARRY_FUNCTION_GCC_ADD(addcarry, 32);
+//    __BIGINT_CARRY_FUNCTION_GCC_SUB(subborrow, 32);
+//	#if defined(__SIZEOF_INT128__)
+//		__BIGINT_CARRY_FUNCTION_GCC_ADD(addcarry, 64);
+//		__BIGINT_CARRY_FUNCTION_GCC_SUB(subborrow, 64);
+//	#endif
 
 #else
 	template<typename T>
-	inline static unsigned char addcarry(unsigned char carry, T a, T b, T * res) {
+	inline unsigned char addcarry(unsigned char carry, T a, T b, T * res) {
 		b += carry;
 		carry = b < carry;
 		*res = a + b;
 		return carry + (*res < a);
 	}
 	template<typename T>
-	inline static unsigned char subborrow(unsigned char borrow, T a, T b, T * res) {
+	inline unsigned char subborrow(unsigned char borrow, T a, T b, T * res) {
 		b += borrow;
 		borrow = b < borrow;
 		*res = a - b;

@@ -50,7 +50,7 @@ int main() {
 	std::ofstream gce("tests/gcd_classic_extended.csv");
 	std::ofstream gbe("tests/gcd_binary_extended.csv");
 
-	BigInt a, b, g, l, u, v, gt, lt;
+	Euclid::BI a, b, g, l, u, v, gt, lt;
 	Timer tm;
 	std::string strtime;
 	int N;
@@ -61,38 +61,38 @@ int main() {
 		std::cout << i << "... ";
 		f >> a >> b >> gt >> lt;
 		auto sz = std::min(a.dig(), b.dig());
-		std::string pre_info = std::to_string(i) + "; " + std::to_string(sz) + "; ";
+		std::string pre_info = std::to_string(i) + ", " + std::to_string(sz) + ", ";
 		
 		tm.start();
 		g = gcd(a, b, GCDCalcMethod::CLASSIC);
 		strtime = tm.getstr();
 		OK = g == gt;
-		gc << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "\n";
+		gc << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << "\n";
 
 		tm.start();
 		g = gcd(a, b, GCDCalcMethod::BINARY);
 		strtime = tm.getstr();
 		OK = g == gt;
-		gb << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "\n";
+		gb << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << "\n";
 
 		tm.start();
 		l = lcm(a, b, GCDCalcMethod::CLASSIC);
 		strtime = tm.getstr();
 		OK = l == lt;
-		lc << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "\n";
+		lc << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << "\n";
 
 		tm.start();
 		l = lcm(a, b, GCDCalcMethod::BINARY);
 		strtime = tm.getstr();
 		OK = l == lt;
-		lb << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "\n";
+		lb << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << "\n";
 
 		tm.start();
 		g = gcd_ext(a, b, u, v, GCDCalcMethod::CLASSIC);
 		strtime = tm.getstr();
 		OK = g == gt;
 		OKuv = g == a*u + b*v;
-		gce << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "; " << (OKuv ? "OK" : "FAIL") <<"\n";
+		gce << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << ", " << (OKuv ? "OK" : "FAIL") <<"\n";
 
 		// because of stack overflow
 		if (i <= 300) {
@@ -101,7 +101,7 @@ int main() {
 			strtime = tm.getstr();
 			OK = g == gt;
 			OKuv = g == a*u + b*v;
-			gbe << pre_info << strtime << "; " << (OK ? "OK" : "FAIL") << "; " << (OKuv ? "OK" : "FAIL") << "\n";
+			gbe << pre_info << strtime << ", " << (OK ? "OK" : "FAIL") << "; " << (OKuv ? "OK" : "FAIL") << "\n";
 		}
 	}
 

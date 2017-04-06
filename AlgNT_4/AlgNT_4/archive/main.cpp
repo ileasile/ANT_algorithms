@@ -361,9 +361,9 @@ void make_task(
 
 int main() {
 	srand((unsigned)time(NULL));
-	const bool NO_OUTPUT = false;
-	const size_t NTESTS_ALL = 50;
-	const size_t NTESTS_PART = 100;
+	const bool NO_OUTPUT = true;
+	const size_t NTESTS_ALL = 100;
+	const size_t NTESTS_PART = 500;
 	const size_t LEN_COEF_ALL = 2;
 	const size_t LEN_COEF_PART = 5;
 	const size_t DELTA_ALL = 5;
