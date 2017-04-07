@@ -31,15 +31,15 @@ void test(BigInt nstart, const BigInt & nstep, int test_count, const std::string
 }
 
 int main() {
-	std::set<BigInt> s;
+	/*std::set<BigInt> s;
 	eratosthenes(s, 1000);
 	for (auto & i : s) {
 		std::cout << i << " ";
 	}
 	std::cout << std::endl;
-	system("pause");
+	system("pause");*/
 	
 
-	//test(250000, 250000, 40, "test/eratosthenes.csv");
+	test(250000, 250000, 40, "test/eratosthenes.csv");
 	return 0;
 }
