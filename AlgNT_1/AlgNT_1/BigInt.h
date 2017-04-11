@@ -49,20 +49,12 @@ namespace BigIntUtility {
 
 	//iterative binary logarithm
 	template<typename int_type>
-	unsigned char _log2_iter(int_type n) {
+	constexpr auto _log2(int_type n) {
 		unsigned char r = 0;
 		while (n > 1) {
 			++r; n >>= 1;
 		}
 		return r;
-	}
-
-	//constexpr functions to count integer logarithms
-	constexpr unsigned char _log2(uint64_t n) {
-		return ((n <= 1) ? 0 : 1 + _log2(n >> 1));
-	}
-	constexpr unsigned char _logb(uint64_t n, uint32_t base) {
-		return ((n <= 1) ? 0 : 1 + _logb(n / base, base));
 	}
 
 	template <int bits> struct uint_t {};
@@ -1112,7 +1104,7 @@ void BigInt_t<SIZE>::div(const BigInt_t<SIZE> & d, BigInt_t<SIZE> & Q, BigInt_t<
 	auto B = d.abs();
 
 	if (R.compareAbs(B) != -1) {
-		int bits_shift = SOI - BigIntUtility::_log2_iter(B.data.back()) - 1;
+		int bits_shift = SOI - BigIntUtility::_log2(B.data.back()) - 1;
 		R <<= bits_shift;
 		B <<= bits_shift;
 		lui eldest_dig = B.data.back();
