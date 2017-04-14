@@ -1,0 +1,89 @@
+task7 := function()
+local R, f, g, h, d, r, u, v, uvl, inp, p, a, n, i;
+	p := 7; #2; #if you need GF(2)
+	R := PolynomialRing(GF(p),["x","y","z"]);
+	
+	#input
+	inp := InputTextFile( "input.txt" );
+	f := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));
+	g := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));
+	
+	#output
+	Print("f(x) = ", f, "\ng(x) = ", g, "\n");
+	
+	#multiplication
+	h := f * g;
+	Print("(f*g)(x) = ", h, "\n");
+	
+	#division and remainder
+	r := f mod g;
+	d := Quotient(f - r, g);
+	Print("(f/g)(x) = (Q = ", d, ", R = ", r, ")\n");
+	
+	#gcd
+	d := Gcd(f, g);
+	Print("(f, g) = ", d, "\n");
+	
+	#extended gcd
+	uvl := GcdRepresentation(f, g);
+	Print("u = ", uvl[1], "\nv = ", uvl[2], "\n");
+	
+	#derivative of f
+	d := Derivative(f);
+	Print("df/dx = ", d, "\n");
+	
+	#f (a)
+	a := 3;
+	Print("f(", a, ") = ", Value(f, a), "\n");
+	
+	#factorisation of f
+	uvl := Factors(f);
+	Print("Factors of f are ", uvl, "\n");
+	
+	#test for irreducibility
+	Print("Is f irreducible: ", Length(uvl) = 1, "\n");
+	
+	#multiplication of several polynomials
+	n := EvalString(ReadLine(inp));
+	r := UnivariatePolynomial(GF(p), [1]);
+	for i in [1..n] do
+		h := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));;
+		r := r * h;
+	od;
+	Print("Result of multiplication: ", r, "\n");
+	
+	# ????????? modular composition ????????
+	CloseStream(inp);
+end;
+
+#Length of list c should be even.
+RestoreFunByLaurentCofs := function(c)
+local R, fsol, A, B, sols, m, k, i, j;
+	R := PolynomialRing(Rationals,["x","y","z"]);
+	k := Length(c) / 2;
+	
+	m:=NullMat(2*k, 2*k + 1, Rationals);
+	for i in [1..k] do
+		for j in [i+1..k+1] do
+			m[i][j] := c[j-i];
+		od;
+		m[i][k+1+i] := -1;
+	od;
+	for i in [k+1..2*k] do
+		for j in [1..k+1] do
+			m[i][j] := c[j + i - k - 1];
+		od;
+	od;
+	
+	m := TransposedMatMutable(m);
+	sols := NullspaceMat(m);
+	fsol := sols[1];
+	A := fsol{[k+2 .. 2*k + 1]};
+	B := fsol{[1 .. k + 1]};
+	
+	return UnivariateRationalFunctionByCoefficients( FamilyObj(1), A, B, 0);
+end;
+
+#usage:
+#Read("AlgNT_8.g");
+#RestoreFunByLaurentCofs([0, 0, 1, 7, -3, 0, -2, -21, -43, 21]);
