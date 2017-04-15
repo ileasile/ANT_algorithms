@@ -1,3 +1,9 @@
+#usage:
+#Read("AlgNT_8.g");
+#task7();
+#task7(2);
+#RestoreFunByLaurentCofs([0, 0, 1, 7, -3, 0, -2, -21, -43, 21]);
+
 # f(x), g(x) --> f(g(x))
 UnivariatePolynomialComposition := function(R, fp, gp)
 local i, n, m, f, h, g_pow;
@@ -6,9 +12,10 @@ local i, n, m, f, h, g_pow;
 	h := UnivariatePolynomial(R, []);;
 	
 	f := CoefficientsOfUnivariatePolynomial(fp);
-	for i in [0..n] do
-		g_pow := gp^i;
-		h := h + f[i+1]*g_pow;
+	g_pow := UnivariatePolynomial(R, [1]);
+	for i in [1 .. n + 1] do
+		h := h + f[i] * g_pow;
+		g_pow := g_pow * gp;
 	od;
 	
 	return h;
@@ -106,7 +113,3 @@ local A, B, sols, m, k, i, j;
 	
 	return UnivariateRationalFunctionByCoefficients(FamilyObj(1), A, B, 0);
 end;
-
-#usage:
-#Read("AlgNT_8.g");
-#RestoreFunByLaurentCofs([0, 0, 1, 7, -3, 0, -2, -21, -43, 21]);
