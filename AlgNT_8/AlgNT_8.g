@@ -1,5 +1,6 @@
 task7 := function()
-local R, f, g, h, d, r, u, v, uvl, inp, p, a, n, i;
+local R, f, g, h, dr, d, r, u, v, uvl, inp, p, a, n, i;
+	SetInfoLevel(InfoWarning, 0);
 	p := 7; #2; #if you need GF(2)
 	R := PolynomialRing(GF(p),["x","y","z"]);
 	
@@ -16,9 +17,8 @@ local R, f, g, h, d, r, u, v, uvl, inp, p, a, n, i;
 	Print("(f*g)(x) = ", h, "\n");
 	
 	#division and remainder
-	r := f mod g;
-	d := Quotient(f - r, g);
-	Print("(f/g)(x) = (Q = ", d, ", R = ", r, ")\n");
+	dr := QuotientRemainder(f, g);
+	Print("(f/g)(x) = (Q = ", dr[1], ", R = ", dr[2], ")\n");
 	
 	#gcd
 	d := Gcd(f, g);
@@ -32,7 +32,7 @@ local R, f, g, h, d, r, u, v, uvl, inp, p, a, n, i;
 	d := Derivative(f);
 	Print("df/dx = ", d, "\n");
 	
-	#f (a)
+	#f(a)
 	a := 3;
 	Print("f(", a, ") = ", Value(f, a), "\n");
 	
@@ -43,24 +43,27 @@ local R, f, g, h, d, r, u, v, uvl, inp, p, a, n, i;
 	#test for irreducibility
 	Print("Is f irreducible: ", Length(uvl) = 1, "\n");
 	
-	#multiplication of several polynomials
+	#multiplication of several polynomials mod f
 	n := EvalString(ReadLine(inp));
 	r := UnivariatePolynomial(GF(p), [1]);
 	for i in [1..n] do
 		h := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));;
-		r := r * h;
+		r := (r * h) mod f;
 	od;
-	Print("Result of multiplication: ", r, "\n");
+	Print("Result of modular multiplication: ", r, "\n");
 	
 	# ????????? modular composition ????????
+	
+	
 	CloseStream(inp);
 end;
 
-#Length of list c should be even.
+#Length of list c should be even. 
+#Otherwise, only first Length(c) - 1 elements of list will be taken.
 RestoreFunByLaurentCofs := function(c)
 local A, B, sols, m, k, i, j;
 	PolynomialRing(Rationals,["x","y","z"]);
-	k := Length(c) / 2;
+	k := QuoInt(Length(c), 2);
 	
 	m := NullMat(2*k + 1, 2*k, Rationals);
 	for i in [1..k] do
@@ -76,7 +79,7 @@ local A, B, sols, m, k, i, j;
 	od;
 	
 	sols := NullspaceMat(m);
-	A := sols[1]{[k+2 .. 2*k + 1]};
+	A := sols[1]{[k + 2 .. 2*k + 1]};
 	B := sols[1]{[1 .. k + 1]};
 	
 	return UnivariateRationalFunctionByCoefficients(FamilyObj(1), A, B, 0);
