@@ -58,30 +58,28 @@ end;
 
 #Length of list c should be even.
 RestoreFunByLaurentCofs := function(c)
-local R, fsol, A, B, sols, m, k, i, j;
-	R := PolynomialRing(Rationals,["x","y","z"]);
+local A, B, sols, m, k, i, j;
+	PolynomialRing(Rationals,["x","y","z"]);
 	k := Length(c) / 2;
 	
-	m:=NullMat(2*k, 2*k + 1, Rationals);
+	m := NullMat(2*k + 1, 2*k, Rationals);
 	for i in [1..k] do
-		for j in [i+1..k+1] do
-			m[i][j] := c[j-i];
+		for j in [i + 1 .. k + 1] do
+			m[j][i] := c[j - i];
 		od;
-		m[i][k+1+i] := -1;
+		m[k + 1 + i][i] := -1;
 	od;
-	for i in [k+1..2*k] do
-		for j in [1..k+1] do
-			m[i][j] := c[j + i - k - 1];
+	for i in [k + 1 .. 2*k] do
+		for j in [1 .. k + 1] do
+			m[j][i] := c[j + i - k - 1];
 		od;
 	od;
 	
-	m := TransposedMatMutable(m);
 	sols := NullspaceMat(m);
-	fsol := sols[1];
-	A := fsol{[k+2 .. 2*k + 1]};
-	B := fsol{[1 .. k + 1]};
+	A := sols[1]{[k+2 .. 2*k + 1]};
+	B := sols[1]{[1 .. k + 1]};
 	
-	return UnivariateRationalFunctionByCoefficients( FamilyObj(1), A, B, 0);
+	return UnivariateRationalFunctionByCoefficients(FamilyObj(1), A, B, 0);
 end;
 
 #usage:
