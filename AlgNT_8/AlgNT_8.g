@@ -75,7 +75,7 @@ local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i;
 	# modular composition
 	r := UnivariatePolynomialComposition(GF(p), f, g);
 	h := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));;
-	Print("f . g mod h = ", r mod h, ", where h(x) =", h, " \n");
+	Print("f . g mod h = ", r mod h, ", where h(x) = ", h, " \n");
 	
 	CloseStream(inp);
 end;
