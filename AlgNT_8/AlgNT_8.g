@@ -1,7 +1,27 @@
-task7 := function()
-local R, f, g, h, dr, d, r, u, v, uvl, inp, p, a, n, i;
+# f(x), g(x) --> f(g(x))
+UnivariatePolynomialComposition := function(R, fp, gp)
+local i, n, m, f, h, g_pow;
+	n := DegreeOfLaurentPolynomial(fp);
+	m := DegreeOfLaurentPolynomial(gp);
+	h := UnivariatePolynomial(R, []);;
+	
+	f := CoefficientsOfUnivariatePolynomial(fp);
+	for i in [0..n] do
+		g_pow := gp^i;
+		h := h + f[i+1]*g_pow;
+	od;
+	
+	return h;
+end;
+
+task7 := function(p...)
+local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i;
 	SetInfoLevel(InfoWarning, 0);
-	p := 7; #2; #if you need GF(2)
+	if Length(p)=0 then
+		p := 7;
+	else
+		p := p[1];
+	fi;
 	R := PolynomialRing(GF(p),["x","y","z"]);
 	
 	#input
@@ -36,7 +56,7 @@ local R, f, g, h, dr, d, r, u, v, uvl, inp, p, a, n, i;
 	a := 3;
 	Print("f(", a, ") = ", Value(f, a), "\n");
 	
-	#factorisation of f
+	#factorization of f
 	uvl := Factors(f);
 	Print("Factors of f are ", uvl, "\n");
 	
@@ -52,8 +72,10 @@ local R, f, g, h, dr, d, r, u, v, uvl, inp, p, a, n, i;
 	od;
 	Print("Result of modular multiplication: ", r, "\n");
 	
-	# ????????? modular composition ????????
-	
+	# modular composition
+	r := UnivariatePolynomialComposition(GF(p), f, g);
+	h := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));;
+	Print("f . g mod h = ", r mod h, ", where h(x) =", h, " \n");
 	
 	CloseStream(inp);
 end;

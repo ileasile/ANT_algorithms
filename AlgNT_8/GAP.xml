@@ -24,7 +24,7 @@
             <Keywords name="Folders in comment, open"></Keywords>
             <Keywords name="Folders in comment, middle"></Keywords>
             <Keywords name="Folders in comment, close"></Keywords>
-            <Keywords name="Keywords1">for&#x000D;&#x000A;do&#x000D;&#x000A;od&#x000D;&#x000A;mod&#x000D;&#x000A;in</Keywords>
+            <Keywords name="Keywords1">for&#x000D;&#x000A;do&#x000D;&#x000A;od&#x000D;&#x000A;mod&#x000D;&#x000A;in&#x000D;&#x000A;if else fi</Keywords>
             <Keywords name="Keywords2">function&#x000D;&#x000A;return&#x000D;&#x000A;local&#x000D;&#x000A;end</Keywords>
             <Keywords name="Keywords3">Print</Keywords>
             <Keywords name="Keywords4"></Keywords>
