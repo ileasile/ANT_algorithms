@@ -6,14 +6,13 @@
 
 # f(x), g(x) --> f(g(x))
 UnivariatePolynomialComposition := function(R, fp, gp)
-local i, n, m, f, h, g_pow;
-	n := DegreeOfLaurentPolynomial(fp);
-	m := DegreeOfLaurentPolynomial(gp);
-	h := UnivariatePolynomial(R, []);;
-	
+local i, n, f, h, g_pow;
 	f := CoefficientsOfUnivariatePolynomial(fp);
+	n := Length(f);
+	
+	h := UnivariatePolynomial(R, []);;
 	g_pow := UnivariatePolynomial(R, [1]);
-	for i in [1 .. n + 1] do
+	for i in [1 .. n] do
 		h := h + f[i] * g_pow;
 		g_pow := g_pow * gp;
 	od;
@@ -22,7 +21,8 @@ local i, n, m, f, h, g_pow;
 end;
 
 task7 := function(p...)
-local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i;
+local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i, prev_info_level;
+	prev_info_level := InfoLevel(InfoWarning);
 	SetInfoLevel(InfoWarning, 0);
 	if Length(p)=0 then
 		p := 7;
@@ -85,6 +85,7 @@ local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i;
 	Print("f . g mod h = ", r mod h, ", where h(x) = ", h, " \n");
 	
 	CloseStream(inp);
+	SetInfoLevel(InfoWarning, prev_info_level);
 end;
 
 #Length of list c should be even. 
