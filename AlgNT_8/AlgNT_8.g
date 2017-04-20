@@ -4,8 +4,8 @@
 #task7(2);
 #RestoreFunByLaurentCofs([0, 0, 1, 7, -3, 0, -2, -21, -43, 21]);
 
-# f(x), g(x) --> f(g(x))
-UnivariatePolynomialComposition := function(R, fp, gp)
+# f(x), g(x) --> f(g(x)) mod h(x)
+UnivariatePolynomialModularComposition := function(R, fp, gp, hp)
 local i, n, f, h, g_pow;
 	f := CoefficientsOfUnivariatePolynomial(fp);
 	n := Length(f);
@@ -14,7 +14,7 @@ local i, n, f, h, g_pow;
 	g_pow := UnivariatePolynomial(R, [1]);
 	for i in [1 .. n] do
 		h := h + f[i] * g_pow;
-		g_pow := g_pow * gp;
+		g_pow := (g_pow * gp) mod hp;
 	od;
 	
 	return h;
@@ -80,9 +80,9 @@ local R, f, g, h, dr, d, r, u, v, uvl, inp, a, n, i, prev_info_level;
 	Print("Result of modular multiplication: ", r, "\n");
 	
 	# modular composition
-	r := UnivariatePolynomialComposition(GF(p), f, g);
 	h := UnivariatePolynomial(GF(p), EvalString(ReadLine(inp)));;
-	Print("f . g mod h = ", r mod h, ", where h(x) = ", h, " \n");
+	r := UnivariatePolynomialModularComposition(GF(p), f, g, h);
+	Print("f . g mod h = ", r , ", where h(x) = ", h, " \n");
 	
 	CloseStream(inp);
 	SetInfoLevel(InfoWarning, prev_info_level);
